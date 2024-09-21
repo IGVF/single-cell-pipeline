@@ -131,3 +131,6 @@ dmypy.json
 .DS_Store
 
 test-inputs/*
+src/python/synapse/manifest.tsv
+src/python/synapse/Team_1_Y3_first_row.tsv
+.vscode/launch.json

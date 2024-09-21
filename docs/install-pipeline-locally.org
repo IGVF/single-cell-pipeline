@@ -1,0 +1,337 @@
+* Introduction
+
+The default configuration for the IGVF single-cell pipeline is a docker based Terra
+cloud environment. Docker tends not to be available on HPC
+environments so I wanted to use singularity instead. Though as of yet
+I haven't figured out how to adjust the cromwell configuration for the
+queing systems I have access to and have just been running individual
+experiments on a single reasonably sized host.
+
+* Define some variables
+
+#+name: default-table
+| root_dir             | /home/diane/proj                          |
+| atomic_workflows_git | https://github.com/IGVF/single-cell-pipeline |
+| diane_conda_url      | https://woldlab.caltech.edu/~diane/conda/ |
+| conda_command        | /home/diane/bin/micromamba                |
+| environment          | the IGVF single-cell pipeline                          |
+
+These variables are accessed has ${defaults["variable_name"]} in the shell
+scripts below.
+
+* Set up the conda environment
+
+It is very important to make sure you get the recent version of
+cromwell, conda has some quite old versions available, and atomic
+workflow needs something relatively recent. (The version 40 of
+cromwell I accidentally installed on my first try definitely did not
+work).
+
+This block should install most of the dependencies to run
+single-cell-pipeline into a [[https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html][conda environment]]. Conda-forge recommends
+[[https://mamba.readthedocs.io/en/latest/user_guide/mamba.html][mamba]] and I found [[https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html][micromamba]] to be easiest to install, though it is a
+bit limited compared to conda or mamba.
+
+You will need to replace the ${defaults["conda_command"]} and
+${defaults["environment"]} with appropriate settings for your
+environment.
+
+
+#+name: create-single-cell-pipeline-environment
+#+begin_src bash :var defaults=default-table
+  ${defaults['conda_command']} create -q \
+             -n ${defaults['environment']} \
+             -c conda-forge -c bioconda \
+             'cromwell>=86' \
+             singularity \
+             gsutil \
+             'synapseclient>=4' >/dev/null &
+#+end_src
+
+#+RESULTS: create-single-cell-pipeline-environment
+
+Once that process finishes, you can use the following run commands to
+make sure the main components were installed.
+
+#+name: check-single-cell-pipeline-environment
+#+begin_src bash :var defaults=default-table
+  ${defaults['conda_command']} run -n ${defaults['environment']} womtool --version
+  ${defaults['conda_command']} run -n ${defaults['environment']} cromwell --version
+  ${defaults['conda_command']} run -n ${defaults['environment']} singularity --version
+  ${defaults['conda_command']} run -n ${defaults['environment']} gsutil --version
+  ${defaults['conda_command']} run -n ${defaults['environment']} synapse --version
+#+end_src
+
+#+RESULTS: check-single-cell-pipeline-environment
+| womtool     | 86       |       |
+| cromwell    | 86       |       |
+| singularity | version  | 3.8.6 |
+| gsutil      | version: |   5.3 |
+| Synapse     | Client   | 4.4.0 |
+
+Next we check-out the IGVF single-cell pipeline repository. As of the time I am
+writing this, we are using release v1
+
+#+name: checkout-atomic-workflow
+#+begin_src bash :var defaults=default-table :async yes :results none
+  pushd ${defaults['root_dir']}
+  git clone ${defaults['atomic_workflows_git']} -b updated-qcs
+  popd
+#+end_src
+
+* Configuring cromwell
+
+This configuration file is the magic that tells cromwell to use
+singularity instead of docker. This configuration file is for running
+locally on a single machine. I need to pass
+~-Dconfig.file=cromwell.conf~ when launching the pipleine to get
+cromwell to use the configuration file. There needs to be more
+adjustments to integrate with the local queing system.
+
+I found the initial example in the singularity section of the cromwell
+[[https://cromwell.readthedocs.io/en/latest/tutorials/Containers/#singularity][Containers]] documentation.
+
+After some testing I did discovered that synapse needs access to a
+configuration file and possible a cache directory, to work correctly.
+
+Without the configuration file the pipeline aborts when ~synapse get~
+failing because of the authentication prompt. This happens because the
+default behavior of singularity is to limit the containers to the
+directory tree below where the container was started.
+
+To resolve this you need to replace the ${HOME} paths in the
+configuration below with your actual paths. Using the ~ to represent
+home directories won't work, at least for the destination path as
+singularity will then complain about needing an absolute path.
+
+#+name: cromwell-local-singularity
+#+begin_src wdl
+  include required(classpath("application"))
+  
+  backend {
+      default: singularity
+      providers: {
+          singularity {
+              # The backend custom configuration.
+              actor-factory = "cromwell.backend.impl.sfs.config.ConfigBackendLifecycleActorFactory"
+  
+              config {
+                  run-in-background = true
+                  runtime-attributes = """
+                    String? docker
+                  """
+                  submit-docker = """
+                    singularity exec --containall --bind ${HOME}/.synapseConfig:${HOME}/.synapseConfig --bind ${HOME}/.synapseCache:${HOME}/.synapseCache --bind ${cwd}:${docker_cwd} docker://${docker} ${job_shell} ${docker_script}
+                  """
+              }
+          }
+      }
+  }
+#+end_src
+
+* Configuring a local IGVF single-cell pipeline run
+
+Terra takes values from the dataset tables and uses that to generate a
+metadata json file for cromwell. When running outside of terra, one
+will need to manually generate the json file.
+
+I found it could be somewhat confusing to figure out what the proper
+name for a variable should be. Since cromwell supports subworkflows,
+it seemed like it uses a dotted path to refer to setting a value in a
+particular workflow.
+
+If you have an example .json file for the current workflow and some of
+the terra tables, this you should replace the contents of
+${This.variable} with what's in the contents of the variable column
+for the row you're working on.
+
+This example is for a customized 10x multiome experiment. This was
+tested using a version of single-cell pipeline from around August 16th.
+
+I did find it somewhat confusing to know which arguments accept urls,
+files, or synapse ids. There are also likely some variables that are
+available that are not reported in this example.
+
+#+name: gm12878.json
+#+begin_src json
+{
+  "single_cell_pipeline.prefix": "Team_6-GM12878-10XMultiome",
+  "single_cell_pipeline.chemistry": "10x_multiome",
+  "single_cell_pipeline.genome_fasta": "https://api.data.igvf.org/reference-files/IGVFFI0653VCGH/@@download/IGVFFI0653VCGH.fasta.gz",
+  "single_cell_pipeline.genome_tsv": "IGVF_human_v43_Homo_sapiens_genome_files_hg38_v43.tsv",
+  "single_cell_pipeline.gtf": "https://api.data.igvf.org/reference-files/IGVFFI7217ZMJZ/@@download/IGVFFI7217ZMJZ.gtf.gz",
+  "single_cell_pipeline.atac_barcode_offset": 0,
+  "single_cell_pipeline.fastq_barcode": [
+    "syn61457432",
+    "syn61457437",
+    "syn61457449",
+    "syn61457459"
+  ],
+  "single_cell_pipeline.read1_atac": [
+    "syn61457431",
+    "syn61457436",
+    "syn61457448",
+    "syn61457458"
+  ],
+  "single_cell_pipeline.read2_atac": [
+    "syn61457434",
+    "syn61457438",
+    "syn61457454",
+    "syn61457460"
+  ],
+  "single_cell_pipeline.read1_rna": [
+    "syn61457461",
+    "syn61457463",
+    "syn61457465",
+    "syn61457469"
+  ],
+  "single_cell_pipeline.read2_rna": [
+    "syn61457462",
+    "syn61457464",
+    "syn61457468",
+    "syn61457476"
+  ],
+  "single_cell_pipeline.seqspecs": [
+    "https://raw.githubusercontent.com/detrout/y2ave_seqspecs/main/Team_6_GM12878_10XMultiome-L001_seqspec.yaml"
+  ],
+  "single_cell_pipeline.whitelist_atac": [
+    "737K-arc-v1_ATAC.txt.gz"
+  ],
+  "single_cell_pipeline.whitelist_rna": [
+    "737K-arc-v1_GEX.txt.gz"
+  ],
+  "single_cell_pipeline.whitelists_tsv": "gs://broad-buenrostro-pipeline-genome-annotations/whitelists/whitelists.tsv",
+  "single_cell_pipeline.check_read1_rna.disk_factor": 1,
+  "single_cell_pipeline.check_read2_rna.disk_factor": 1,
+  "single_cell_pipeline.check_read1_atac.disk_factor": 1,
+  "single_cell_pipeline.check_read2_atac.disk_factor": 1,
+  "single_cell_pipeline.check_fastq_barcode.disk_factor": 1
+}
+#+end_src  
+
+This example is for a parse splitseq RNA experiment, and comes from
+before I figured out how to use synapse, so uses local file names for
+the source data.
+
+I think I'd also made a slight change to the pipeline for it to better
+support local files
+
+#+name: tiny-13a.json
+#+begin_src json
+{
+    "single_cell_pipeline.trim_fastqs": true,
+    "single_cell_pipeline.chemistry": "parse",
+    "single_cell_pipeline.prefix": "106",
+    "single_cell_pipeline.subpool": "13A",
+    "single_cell_pipeline.pipeline_modality": "full",
+
+    "single_cell_pipeline.genome_fasta":  "/woldlab/loxcyc/home/diane/proj/genome/GRCm39-M32-male/GRCm38-IGVFI282QLXO.fasta.gz",
+
+    "single_cell_pipeline.seqspecs": ["/woldlab/loxcyc/home/diane/proj/igvf-bridge-samples/b01_13atiny_seqspec.yaml"],
+
+    "single_cell_pipeline.whitelist_atac": ["737K-arc-v1-ATAC.txt.gz"],
+    "single_cell_pipeline.read1_atac": [],
+    "single_cell_pipeline.read2_atac": [],
+    "single_cell_pipeline.fastq_barcode": [],
+    "single_cell_pipeline.count_only": false,
+    "single_cell_pipeline.atac_barcode_offset": 8,
+
+    "single_cell_pipeline.whitelist_rna": ["/woldlab/loxcyc/home/diane/proj/igvf-bridge-samples/parse-splitseq-v2/CB1.txt", "/woldlab/loxcyc/home/diane/proj/igvf-bridge-samples/parse-splitseq-v2/CB23.txt"],
+    "single_cell_pipeline.read1_rna": ["/woldlab/loxcyc/home/diane/proj/igvf-bridge-samples/igvf_b01/next1/B01_13Atiny_R1.fastq.gz"],
+    "single_cell_pipeline.read2_rna": ["/woldlab/loxcyc/home/diane/proj/igvf-bridge-samples/igvf_b01/next1/B01_13Atiny_R2.fastq.gz"],
+    "single_cell_pipeline.gtf": "/woldlab/loxcyc/home/diane/proj/genome/GRCm39-M32-male/M32-IGVFFI9744VSJF.gtf.gz",
+    "single_cell_pipeline.rna.kb_strand": "forward",
+    "single_cell_pipeline.rna.replacement_list": "r1_RT_replace.txt",
+
+    "single_cell_pipeline.genome_name": "GRCm39-M32",
+    "single_cell_pipeline.genome_tsv": "Mus_musculus_genome_files_mm39_v32.tsv",
+    "single_cell_pipeline.whitelists_tsv": "permit_lists_urls.tsv",
+
+    "single_cell_pipeline.check_read1_rna.disk_factor": 1,
+    "single_cell_pipeline.check_read2_rna.disk_factor": 1,
+    "single_cell_pipeline.check_read1_atac.disk_factor": 1,
+    "single_cell_pipeline.check_read2_atac.disk_factor": 1,
+    "single_cell_pipeline.check_fastq_barcode.disk_factor": 1
+}
+#+end_src
+
+* Running cromwell
+
+For me, I needed to manually add the ${atomic_workflows}/src/bash
+directory added to the path for a script stored in there. The
+-Dconfig.file points to the contents of the cromwell-local-singularity
+file described above.
+
+My systems default umask is 022 and with cromwell I end up with
+directories with the permissions 757 and for some reason that
+generates error messages when trying to modify files or delete the
+cromwell-execution directory.
+
+I needed to reset my umask to 002 before running cromwell with
+
+#+begin_src bash
+umask 002
+#+end_src
+
+You will need to pass the path to the wdl script, the cromwell
+configuration file and json configuration file as shown below.
+
+
+#+begin_src bash
+  PATH=/woldlab/loxcyc/home/diane/proj/single-cell-pipeline/src/bash/:$PATH
+    \ cromwell -Dconfig.file=cromwell.conf run \
+    ../single-cell-pipeline/single_cell_pipeline.wdl \ -i tiny-13a.json
+#+end_src
+
+* Finding results with cromwell.
+
+This is sufficiently annoying that the ENCODE DCC wrote
+[[https://github.com/ENCODE-DCC/caper]] to try and make it easier to stage
+results in an easier to understand directory structure.
+
+Unfortunately I had trouble getting caper to work, and so started with
+the simpler goal of getting cromwell to work.
+
+Cromwell makes it's own directory hierarchy under cromwell-executions/
+here's an example from a partial run of the atomic_workflows pipeline
+
+As an example subset, here's a bit of the directory tree from one
+failed run.
+
+- cromwell-executions
+  - single_cell_pipeline
+    - ${random_uuid}
+      - call-atac
+      - call-barcode_mapping
+      - call-check_fastq_barcode
+      - call-check_read1_atac
+      - call-check_read1_rna
+        - shard-0
+          - execution
+            - check_inputs_monitor.log
+            - files
+            - glob-aae8b15f635ae9fc31e845b03c8537e4
+            - glob-aae8b15f635ae9fc31e845b03c8537e4.list
+            - rc
+            - script
+            - script.background
+            - script.submit
+            - stderr
+            - stderr.background
+            - stdout
+            - stdout.background
+          - tmp.${suffix}
+        - shard-1
+        - shard-2
+        - shard-3        
+      - call-check_read2_atac
+      - call-check_read2_rna
+      - call-check_seqspec
+
+I was usually looking for the stderr/stdout files in the various
+workflow steps to try and find what had gone wrong with a run. It will
+probably take some experimentation to get the configuration settings
+correct for your environment.
+
+I was using ~find cromwell-executions -name ${filename}~ to find any
+result files.
