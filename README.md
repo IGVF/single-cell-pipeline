@@ -5,8 +5,7 @@ Welcome to the IGVF Single Cell Pipeline repository.
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
+- [Documentation](#documentation)
 - [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
@@ -18,7 +17,7 @@ This pipeline had been designed by the IGVF single-cell focus group for automate
 The pipeline can be run with raw FASTQ files and a seqspec file describing them as inputs. The pipeline can handle ATAC and RNA modalities. Taking a seqspec in input makes the pipeline virtually suitable to process every library independently from the assay, protocol, library preparation or sequencing strategy used.
 The RNA and ATAC are processed and QC independently. If the dataset is multi-modal, a final step of joint QC is performed. The main outputs of the pipeline are a fragment file for the ATAC and a count matrix for RNA along side QC metrics and a HTML report.
 
-![Pipeline Overview](docs/images/pipeline_overview.png)
+![Pipeline Overview](docs/images/pipeline_flowchart.png)
 
 
 ## Documentation
