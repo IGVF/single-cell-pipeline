@@ -2,13 +2,11 @@ version: 1.2
 workflows:
    - name: "IGVF-single_cell_pipeline"
      subclass: WDL
-     primaryDescriptorPath: /multiome_pipeline.wdl
+     primaryDescriptorPath: /single_cell_pipeline.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
              - main
              - dev
-             - sw-kb-index
-             - updated-qcs
          tags:
              - /.*/
 
@@ -17,7 +15,8 @@ workflows:
      primaryDescriptorPath: /workflows/subwf_sample_fastqs.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
-             - sw-synapse
+             - main
+             - dev
          tags:
              - /.*/
 
@@ -26,7 +25,8 @@ workflows:
      primaryDescriptorPath: /workflows/subwf_check_inputs_synapse.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
-             - updated-qcs
+             - main
+             - dev
          tags:
              - /.*/
              
@@ -35,8 +35,8 @@ workflows:
      primaryDescriptorPath: /workflows/subwf_kb_index.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
+             - main
              - dev
-             - updated-qcs
          tags:
              - /.*/
              
@@ -45,8 +45,8 @@ workflows:
      primaryDescriptorPath: /workflows/subwf_rna.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
+             - main
              - dev
-             - updated-qcs
          tags:
              - /.*/
     
@@ -55,7 +55,7 @@ workflows:
      primaryDescriptorPath: /workflows/subwf_chromap_index.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
+             - main
              - dev
-             - updated-qcs
          tags:
              - /.*/
