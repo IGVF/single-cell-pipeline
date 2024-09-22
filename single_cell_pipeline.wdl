@@ -285,8 +285,8 @@ workflow multiome_pipeline {
         # ATAC ouputs
         File? atac_bam = atac.atac_chromap_bam
         File? atac_bam_log = atac.atac_chromap_bam_alignement_stats
-        File? atac_filter_fragments = atac.atac_fragments
-        File? atac_filter_fragments_index = atac.atac_fragments_index
+        File? atac_fragments = atac.atac_fragments
+        File? atac_fragments_index = atac.atac_fragments_index
         File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata
         File? atac_snapatac2_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata
 

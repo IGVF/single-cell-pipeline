@@ -57,6 +57,34 @@ The following input files are required to run the pipeline:
 
 ## Output Files
 
+### RNA
+| Name | Suffix | Description |
+|--------|-----|--------|
+| `rna_mtx_tar `| .mtx.tar.gz | [Raw] Tarball containing four separated count matrices in mtx format: Spliced, Unspliced, Ambiguous, and Total |
+| `rna_mtxs_h5ad` | .rna.align.kb.{genome}.count_matrix.h5ad | [Raw] h5ad containing four separated count matrices: Spliced, Unspliced, Ambiguous, and Total |
+| `rna_aggregated_counts_h5ad` | .cells_x_genes.total.h5ad | [Raw] Aggregated(Ambiguous+Spliced+Unspliced) count matrix in h5ad format |
+| `rna_barcode_metadata` | .qc.rna.{genome}.barcode.metadata.tsv | [Raw] Per barcode alignment statistics file |
+| `rna_log` | .rna.log.{genome}.txt | [Raw] Log file from kb |
+| `rna_kb_output` | .rna.align.kb.{genome}.tar.gz | [Raw] Tarball containing all the logs and bus files generated from kb |
+
+### ATAC
+
+| Name | Suffix | Description |
+|--------|-----|--------|
+| `atac_bam` | .atac.align.k4.{genome_name}.bam | [Raw] Aligned bam file from Chromap |
+| `atac_bam_log` | .atac.align.k4.{genome}.log.txt | [Raw] Log file from aligner |
+| `atac_fragments` | .tsv.gz | [Raw] Fragment file from Chromap |
+| `atac_fragments_index`  | .tsv.gz.tbi | [Raw] Fragment file index from Chromap |
+| `atac_chromap_barcode_metadata` | .chromap.barcode.metadata.tsv | [Raw] Per barcode alignment statistics file from Chromap |
+| `atac_snapatac2_barcode_metadata` | .snapatac2.barcode.metadata.tsv | [Filtered] Per barcode statistics file from SnapATAC2 |
+
+### Joint
+
+| Name | Suffix | Description |
+|--------|-----|--------|
+| `joint_barcode_metadata` | .joint.barcode.metadata.{genome}.csv | [Filtered] Joint per barcode statistics file |
+| `csv_summary` | .csv | [Filtered] CSV summary report |
+| `html_summary` | .html | [Filtered] HTML summary report |
 
 
 ## Contributing
