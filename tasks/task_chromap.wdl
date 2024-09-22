@@ -15,10 +15,10 @@ task atac_align_chromap {
         Array[File] fastq_R1
         Array[File] fastq_R2
         Array[File]? fastq_barcode
-        File reference_fasta
         File reference_index_tar_gz
         File? barcode_inclusion_list
         File? barcode_conversion_dict
+        File reference_fasta
 
         Boolean? trim_adapters = true
         Boolean? remove_pcr_duplicates = true
@@ -144,49 +144,129 @@ task atac_align_chromap {
 
     parameter_meta {
         fastq_R1: {
-                description: 'Read1 fastq.',
-                help: 'Processed fastq for read1.',
-                example: 'input.atac.R1.fq.gz',
-            }
+            description: 'Read1 fastq.',
+            help: 'Processed fastq for read1.',
+            example: 'input.atac.R1.fq.gz'
+        }
         fastq_R2: {
-                description: 'Read2 fastq.',
-                help: 'Processed fastq for read2.',
-                example: 'input.atac.R2.fq.gz'
-            }
+            description: 'Read2 fastq.',
+            help: 'Processed fastq for read2.',
+            example: 'input.atac.R2.fq.gz'
+        }
+        fastq_barcode: {
+            description: 'Barcode fastq.',
+            help: 'Processed fastq for barcodes.',
+            example: 'input.atac.barcode.fq.gz'
+        }
+        reference_index_tar_gz: {
+            description: 'Reference index tar.gz file.',
+            help: 'Compressed tarball containing the reference index files.',
+            example: 'reference_index.tar.gz'
+        }
+        barcode_inclusion_list: {
+            description: 'Barcode inclusion list.',
+            help: 'List of barcodes to include in the analysis.',
+            example: 'barcode_inclusion_list.txt'
+        }
+        barcode_conversion_dict: {
+            description: 'Barcode conversion dictionary.',
+            help: 'Dictionary for converting barcodes.',
+            example: 'barcode_conversion_dict.txt'
+        }
+        trim_adapters: {
+            description: 'Trim adapters.',
+            help: 'Boolean flag to indicate if adapters should be trimmed.',
+            default: true
+        }
+        remove_pcr_duplicates: {
+            description: 'Remove PCR duplicates.',
+            help: 'Boolean flag to indicate if PCR duplicates should be removed.',
+            default: true
+        }
+        remove_pcr_duplicates_at_cell_level: {
+            description: 'Remove PCR duplicates at cell level.',
+            help: 'Boolean flag to indicate if PCR duplicates should be removed at the cell level.',
+            default: true
+        }
+        Tn5_shift: {
+            description: 'Tn5 shift.',
+            help: 'Boolean flag to indicate if Tn5 shift should be applied.',
+            default: true
+        }
+        low_mem: {
+            description: 'Low memory mode.',
+            help: 'Boolean flag to indicate if low memory mode should be used.',
+            default: true
+        }
+        bed_output: {
+            description: 'Output in BED format.',
+            help: 'Boolean flag to indicate if output should be in BED format.',
+            default: true
+        }
+        max_insert_size: {
+            description: 'Maximum insert size.',
+            help: 'Maximum insert size for alignment.',
+            default: 2000
+        }
+        quality_filter: {
+            description: 'Quality filter.',
+            help: 'Quality filter threshold for alignment.',
+            default: 0
+        }
         multimappers: {
-                    description: 'Specifiy the numbers of multimappers allowed.',
-                    help: 'This is the integer that will be passed to the -k parameter of bowtie2',
-                    example: [5]
-            }
-        cpus: {
-                description: 'Number of cpus.',
-                help: 'Set the number of cpus used by bowtie2',
-                default: 16
-            }
-        disk_factor: {
-                description: 'Multiplication factor to determine disk required for task align.',
-                help: 'This factor will be multiplied to the size of FASTQs to determine required disk of instance (GCP/AWS) or job (HPCs).',
-                default: 8.0
-            }
-        memory_factor: {
-                description: 'Multiplication factor to determine memory required for task align.',
-                help: 'This factor will be multiplied to the size of FASTQs to determine required memory of instance (GCP/AWS) or job (HPCs).',
-                default: 0.15
-            }
+            description: 'Number of multimappers allowed.',
+            help: 'This is the integer that will be passed to the -k parameter of chromap.',
+            example: 4
+        }
+        bc_error_threshold: {
+            description: 'Barcode error threshold.',
+            help: 'Error threshold for barcode matching.',
+            default: 1
+        }
+        bc_probability_threshold: {
+            description: 'Barcode probability threshold.',
+            help: 'Probability threshold for barcode matching.',
+            default: 0.9
+        }
+        read_format: {
+            description: 'Read format.',
+            help: 'Format of the reads for alignment.',
+            example: 'bc:0:15,r1:16:-1'
+        }
+        subpool: {
+            description: 'Subpool identifier.',
+            help: 'Identifier for the subpool.',
+            default: 'none'
+        }
         genome_name: {
-                description: 'Reference name.',
-                help: 'The name of the reference genome used by the aligner. This is appended to the output file name.',
-                examples: ['GRCh38', 'mm10']
-            }
+            description: 'Reference genome name.',
+            help: 'The name of the reference genome used by the aligner. This is appended to the output file name.',
+            examples: ['GRCh38', 'mm10']
+        }
         prefix: {
-                description: 'Prefix for output files.',
-                help: 'Prefix that will be used to name the output files',
-                examples: 'my-experiment'
-            }
+            description: 'Prefix for output files.',
+            help: 'Prefix that will be used to name the output files.',
+            example: 'my-experiment'
+        }
+        cpus: {
+            description: 'Number of CPUs.',
+            help: 'Set the number of CPUs used by the aligner.',
+            default: 8
+        }
+        disk_factor: {
+            description: 'Disk factor.',
+            help: 'Multiplication factor to determine disk required for task align.',
+            default: 1.0
+        }
+        memory_factor: {
+            description: 'Memory factor.',
+            help: 'Multiplication factor to determine memory required for task align.',
+            default: 0.15
+        }
         docker_image: {
-                description: 'Docker image.',
-                help: 'Docker image for the alignment step.',
-                example: ["us.gcr.io/buenrostro-share-seq/share_task_bowtie2"]
-            }
+            description: 'Docker image.',
+            help: 'Docker image for the alignment step.',
+            example: 'us.gcr.io/buenrostro-share-seq/task_chromap:dev'
+        }
     }
 }
