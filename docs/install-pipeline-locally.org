@@ -1,15 +1,14 @@
 * IGVF Single-Cell Pipeline Setup and Execution Documentation
 
-
 The default configuration for the IGVF single-cell pipeline operates in a Docker-based Terra cloud environment. However, Docker is not always available on high-performance computing (HPC) environments. To accommodate this, Singularity can be used as an alternative. This documentation outlines the setup for running the pipeline on a single host using Singularity. As of now, the Cromwell configuration for specific queuing systems has not been finalized, and individual experiments are being executed on a standalone machine.
 
 ** Define some variables
 
 #+name: default-table
-| root_dir             | /home/diane/proj                          |
+| root_dir             | /home/user/proj                          |
 | single_cell_pipeline_git | https://github.com/IGVF/single-cell-pipeline |
 | diane_conda_url      | https://woldlab.caltech.edu/~diane/conda/ |
-| conda_command        | /home/diane/bin/micromamba                |
+| conda_command        | /home/user/bin/micromamba                |
 | environment          | the IGVF single-cell pipeline                          |
 
 These variables can be accessed using ${defaults["variable_name"]} in the shell scripts provided.
@@ -161,7 +160,7 @@ When running outside of Terra, the metadata .json file for Cromwell must be gene
 To execute the pipeline, ensure the script and configuration files are properly referenced, including the Cromwell configuration file (cromwell.conf), the WDL script, and the generated JSON file.
 
 #+begin_src bash
-  PATH=/woldlab/loxcyc/home/diane/proj/single-cell-pipeline/src/bash/:$PATH
+  PATH=/woldlab/loxcyc/home/user/proj/single-cell-pipeline/src/bash/:$PATH
     \ cromwell -Dconfig.file=cromwell.conf run \
     ../single-cell-pipeline/single_cell_pipeline.wdl \ -i tiny-13a.json
 #+end_src
@@ -204,3 +203,5 @@ To find specific files, use the following command:
 ~find cromwell-executions -name ${filename}~ 
 
 This structure can take some trial and error to configure correctly for your environment. For easier results management, consider using tools like Caper. However, it is also possible to manage this manually as demonstrated above.
+
+We extend our gratitude to [[https://github.com/detrout][@detrout]] for their contribution in providing the initial draft of this document.
