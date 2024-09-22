@@ -148,9 +148,6 @@ for the row you're working on.
 This example is for a customized 10x multiome experiment. This was
 tested using a version of single-cell pipeline from around August 16th.
 
-I did find it somewhat confusing to know which arguments accept urls,
-files, or synapse ids. There are also likely some variables that are
-available that are not reported in this example.
 
 #+name: gm12878.json
 #+begin_src json
