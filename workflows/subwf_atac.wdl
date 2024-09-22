@@ -20,8 +20,6 @@ workflow wf_atac {
         File chrom_sizes
         File tss_bed
         Int? mapq_threshold = 30
-        String? barcode_tag = "CB"
-        String? barcode_tag_fragments
         String chemistry
         String? prefix = "sample"
         String? subpool = "none"
@@ -29,8 +27,8 @@ workflow wf_atac {
         File? gtf
         Int? cutoff
         String pipeline_modality = "full"
-        Boolean trim_fastqs = true
         File? barcode_conversion_dict # For 10X multiome
+        File reference_fasta
 
         # Align-specific inputs
         Array[File] read1
@@ -39,7 +37,6 @@ workflow wf_atac {
         Array[File] seqspecs
         Array[File] barcode_whitelists
         Int? align_multimappers
-        File reference_fasta
         File reference_index_tar_gz
         Boolean? remove_pcr_duplicates = true
         Boolean? remove_pcr_duplicates_at_cell_level = true
@@ -99,8 +96,6 @@ workflow wf_atac {
         Float? seqspec_extract_memory_factor
         String? seqspec_extract_docker_image
     }
-
-    String barcode_tag_fragments_ = if chemistry=="shareseq" then select_first([barcode_tag_fragments, "XC"]) else select_first([barcode_tag_fragments, barcode_tag])
 
     scatter ( idx in range(length(seqspecs)) ) {
         call task_seqspec_extract.seqspec_extract as seqspec_extract {

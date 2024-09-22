@@ -26,10 +26,10 @@ For more detailed documentation, please refer to our [Google Doc](https://docs.g
 
 ## Usage
 
+To run the pipeline on Terra/Anvil go to the [dockstore page](https://dockstore.org/workflows/github.com/IGVF/single-cell-pipeline/IGVF-single_cell_pipeline:main?tab=info) and select export to Terra/Anvil
 
 
-
-For detailed usage instructions, refer to the [documentation](docs/USAGE.md).
+To run the pipeline locally you can refere to these [instructions](docs/install-pipeline-locally.org).
 
 ## Contributing
 
