@@ -11,7 +11,7 @@ import "tasks/task_html_report.wdl" as html_report
 
 # WDL workflow for SHARE-seq
 
-workflow multiome_pipeline {
+workflow singe_cell_pipeline {
 
     input {
         # Common inputs
