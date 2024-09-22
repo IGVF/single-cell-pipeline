@@ -11,7 +11,7 @@ experiments on a single reasonably sized host.
 
 #+name: default-table
 | root_dir             | /home/diane/proj                          |
-| atomic_workflows_git | https://github.com/IGVF/single-cell-pipeline |
+| single_cell_pipeline_git | https://github.com/IGVF/single-cell-pipeline |
 | diane_conda_url      | https://woldlab.caltech.edu/~diane/conda/ |
 | conda_command        | /home/diane/bin/micromamba                |
 | environment          | the IGVF single-cell pipeline                          |
