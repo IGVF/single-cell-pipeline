@@ -55,6 +55,8 @@ workflow singe_cell_pipeline {
         String? kb_workflow = "nac"
         File? kb_index_tar_gz
 
+        File? chromap_index_tar_gz
+
         
         File genome_tsv
         String? genome_name
@@ -67,7 +69,7 @@ workflow singe_cell_pipeline {
     File tss_bed_ = select_first([tss_bed, annotations["tss"]])
     File gtf_ = select_first([gtf, annotations["genesgtf"]])
     File idx_tar_rna_ = if (kb_workflow == "standard") then select_first([kb_index_tar_gz, annotations["kb_standard_idx_tar"]]) else select_first([kb_index_tar_gz, annotations["kb_nac_idx_tar"]])
-    File idx_tar_atac_ = select_first([kb_index_tar_gz, annotations["chromap_idx_tar"]])
+    File idx_tar_atac_ = select_first([chromap_index_tar_gz, annotations["chromap_idx_tar"]])
 
     Boolean process_atac = if length(read1_atac)>0 then true else false
     Boolean process_rna = if length(read1_rna)>0 then true else false
@@ -284,7 +286,8 @@ workflow singe_cell_pipeline {
         
         # ATAC ouputs
         File? atac_bam = atac.atac_chromap_bam
-        File? atac_bam_log = atac.atac_chromap_bam_alignement_stats
+        File? atac_bam_index = atac.atac_chromap_bam_index
+        File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
         File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata

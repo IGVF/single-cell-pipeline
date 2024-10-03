@@ -123,6 +123,7 @@ task atac_align_chromap {
 
     output {
         File atac_bam = "~{bam}"
+        File atac_bam_index = "~{bam}.bai"
         File atac_align_barcode_statistics = barcode_log
         File atac_alignment_log = alignment_log
     }

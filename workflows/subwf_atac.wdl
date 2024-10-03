@@ -143,6 +143,7 @@ workflow wf_atac {
                 docker_image = align_docker_image,
                 remove_pcr_duplicates = remove_pcr_duplicates,
                 remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
+                remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,              
                 Tn5_shift = Tn5_shift,
                 low_mem = low_mem,
                 bed_output = bed_output,
@@ -173,6 +174,7 @@ workflow wf_atac {
                 docker_image = align_docker_image,
                 remove_pcr_duplicates = remove_pcr_duplicates,
                 remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
+                remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,
                 Tn5_shift = Tn5_shift,
                 low_mem = low_mem,
                 bed_output = bed_output,
@@ -214,7 +216,8 @@ workflow wf_atac {
         # Align
         File? atac_alignment_log = align.atac_alignment_log
         File? atac_chromap_bam = generate_bam.atac_bam
-        File? atac_chromap_bam_alignement_stats = generate_bam.atac_alignment_log
+        File? atac_chromap_bam_index = generate_bam.atac_bam_index
+        File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
 
         # Filter
         File? atac_fragments = align.atac_fragments
