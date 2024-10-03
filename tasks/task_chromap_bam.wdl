@@ -20,19 +20,20 @@ task atac_align_chromap {
         File? barcode_inclusion_list
         File? barcode_conversion_dict
 
-        Boolean? trim_adapters = true
-        Boolean? remove_pcr_duplicates = true
-        Boolean? remove_pcr_duplicates_at_cell_level = true
-        Boolean? Tn5_shift = true
-        Boolean? low_mem = true
-        Boolean? bed_output = true
-        Int? max_insert_size = 2000
-        Int? quality_filter = 0
+        Boolean? trim_adapters
+        Boolean? remove_pcr_duplicates
+        Boolean? remove_pcr_duplicates_at_cell_level
+        Boolean? remove_pcr_duplicates_at_bulk_level
+        Boolean? Tn5_shift
+        Boolean? low_mem
+        Boolean? bed_output
+        Int? max_insert_size
+        Int? mapq_threshold
         
 
-        Int? multimappers = 4 # As per ENCODE pipeline
-        Int? bc_error_threshold = 1
-        Float? bc_probability_threshold = 0.9
+        Int? multimappers # As per ENCODE pipeline
+        Int? bc_error_threshold
+        Float? bc_probability_threshold
         #TODO: This should come from a previous task parsing the seqspec.
         String? read_format 
 
@@ -66,7 +67,7 @@ task atac_align_chromap {
     String barcode_log = "${prefix}.atac.align.k${multimappers}.${genome_name}.barcode.summary.csv"
     String alignment_log = "${prefix}.atac.align.k${multimappers}.${genome_name}.log.txt"
 
-    String monitor_log = "atac_align_monitor.log"
+    String monitor_log = "atac_align_monitor.log.txt"
 
     command <<<
         set -e
@@ -94,6 +95,7 @@ task atac_align_chromap {
                 ~{true='--trim-adapters ' false='' trim_adapters} \
                 ~{true='--remove-pcr-duplicates ' false='' remove_pcr_duplicates} \
                 ~{true='--remove-pcr-duplicates-at-cell-level ' false='' remove_pcr_duplicates_at_cell_level} \
+                ~{true='--remove-pcr-duplicates-at-bulk-level ' false='' remove_pcr_duplicates_at_bulk_level} \
                 ~{true='--Tn5-shift ' false='' Tn5_shift} \
                 ~{true='--low-mem ' false='' low_mem} \
                 --SAM \
@@ -104,7 +106,7 @@ task atac_align_chromap {
                 ~{"--drop-repetitive-reads " + multimappers} \
                 -x chromap_index/index \
                 -r ~{reference_fasta} \
-                ~{"-q " + quality_filter} \
+                ~{"-q " + mapq_threshold} \
                 -t ~{cpus} \
                 -1 ~{sep="," fastq_R1} \
                 -2 ~{sep="," fastq_R2} \

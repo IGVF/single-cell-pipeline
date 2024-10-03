@@ -19,7 +19,6 @@ workflow wf_atac {
         # ATAC sub-workflow inputs
         File chrom_sizes
         File tss_bed
-        Int? mapq_threshold = 30
         String chemistry
         String? prefix = "sample"
         String? subpool = "none"
@@ -36,17 +35,18 @@ workflow wf_atac {
         Array[File] fastq_barcode
         Array[File] seqspecs
         Array[File] barcode_whitelists
-        Int? align_multimappers
+        Int? align_multimappers = 4
         File reference_index_tar_gz
         Boolean? remove_pcr_duplicates = true
-        Boolean? remove_pcr_duplicates_at_cell_level = true
-        Boolean? Tn5_shift = true
+        Boolean? remove_pcr_duplicates_at_cell_level = false
+        Boolean? remove_pcr_duplicates_at_bulk_level = true
+        Boolean? Tn5_shift = false
         Boolean? low_mem = true
         Boolean? bed_output = true
         Boolean? trim_adapters = true
         Int? max_insert_size = 2000
-        Int? quality_filter = 0
-        Int? bc_error_threshold = 2
+        Int? mapq_threshold = 0
+        Int? bc_error_threshold = 1
         Float? bc_probability_threshold = 0.9
         String? read_format
         # Runtime parameters
@@ -147,7 +147,7 @@ workflow wf_atac {
                 low_mem = low_mem,
                 bed_output = bed_output,
                 max_insert_size = max_insert_size,
-                quality_filter = quality_filter,
+                mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
                 read_format = index_string_
@@ -177,7 +177,7 @@ workflow wf_atac {
                 low_mem = low_mem,
                 bed_output = bed_output,
                 max_insert_size = max_insert_size,
-                quality_filter = quality_filter,
+                mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
                 read_format = index_string_
