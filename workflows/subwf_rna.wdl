@@ -75,7 +75,7 @@ workflow wf_rna {
     }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
-    File barcode_whitelist_ = seqspec_extract.onlist[0]
+    File barcode_whitelist_ = select_first([barcode_whitelists[0] ,seqspec_extract.onlist[0]])
     
     #Assuming this index_string is applicable to all fastqs for kb task
     String index_string_ = select_first([read_format, seqspec_extract.index_string[0] ])
