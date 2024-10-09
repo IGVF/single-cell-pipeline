@@ -78,7 +78,7 @@ workflow wf_rna {
     }
     Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
     
-    Array[String] index_string_ = select_first([read_format, seqspec_extract.index_string ])
+    String index_string_ = select_first([read_format, seqspec_extract.index_string ])
 
     call task_kb.kb_count as kb{
         input:
@@ -89,7 +89,7 @@ workflow wf_rna {
             kb_workflow = kb_workflow,
             kb_index_tar_gz = kb_index_tar_gz,
             barcode_whitelist = barcode_whitelist_[0],
-            index_string = index_string_[0],
+            index_string = index_string_,
             subpool = subpool,
             genome_name = genome_name,
             prefix = prefix,

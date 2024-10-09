@@ -122,7 +122,7 @@ workflow wf_atac {
     #Assuming this whitelist is applicable to all fastqs for kb task
     Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
     
-    Array[String] index_string_ = select_first([read_format, seqspec_extract.index_string ])
+    String index_string_ = select_first([read_format, seqspec_extract.index_string ])
 
     if (  "~{pipeline_modality}" != "no_align" ) {
         
@@ -154,7 +154,7 @@ workflow wf_atac {
                 mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_[0]
+                read_format = index_string_
         }
 
         call task_align_chromap_bam.atac_align_chromap as generate_bam {
@@ -185,7 +185,7 @@ workflow wf_atac {
                 mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_[0]
+                read_format = index_string_
         }
 
         call task_log_atac.log_atac as log_atac {
