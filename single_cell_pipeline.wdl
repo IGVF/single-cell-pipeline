@@ -75,14 +75,17 @@ workflow singe_cell_pipeline {
     Boolean process_rna = if length(read1_rna)>0 then true else false
       
     #seqspec
-    if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
-        scatter(file in seqspecs){
-            call check_inputs.check_inputs as check_seqspec{
-                input:
-                    path = file
+    if (length(seqspecs) > 0) {
+        if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
+            scatter(file in seqspecs){
+                call check_inputs.check_inputs as check_seqspec{
+                    input:
+                        path = file
+                }
             }
         }
     }
+    
     
     Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
     
