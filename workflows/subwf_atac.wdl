@@ -96,30 +96,33 @@ workflow wf_atac {
         Float? seqspec_extract_memory_factor
         String? seqspec_extract_docker_image
     }
-
-    scatter ( idx in range(length(seqspecs)) ) {
-        call task_seqspec_extract.seqspec_extract as seqspec_extract {
-            input:
-                seqspec = seqspecs[idx],
-                fastq_R1 = basename(read1[idx]),
-                fastq_R2 = basename(read2[idx]),
-                fastq_barcode = basename(fastq_barcode[idx]),
-                onlists = barcode_whitelists,
-                modality = "atac",
-                tool_format = "chromap",
-                onlist_format = "product",
-                chemistry = chemistry,
-                cpus = seqspec_extract_cpus,
-                disk_factor = seqspec_extract_disk_factor,
-                memory_factor = seqspec_extract_memory_factor,
-                docker_image = seqspec_extract_docker_image
+    # run only if seqspec array is not empty
+    if (length(seqspecs) > 0) {
+        #should implement check if length of seqspecs == length of read1 == length of read2
+        scatter ( idx in range(length(seqspecs)) ) {
+            call task_seqspec_extract.seqspec_extract as seqspec_extract {
+                input:
+                    seqspec = seqspecs[idx],
+                    fastq_R1 = basename(read1[idx]),
+                    fastq_R2 = basename(read2[idx]),
+                    fastq_barcode = basename(fastq_barcode[idx]),
+                    onlists = barcode_whitelists,
+                    modality = "atac",
+                    tool_format = "chromap",
+                    onlist_format = "product",
+                    chemistry = chemistry,
+                    cpus = seqspec_extract_cpus,
+                    disk_factor = seqspec_extract_disk_factor,
+                    memory_factor = seqspec_extract_memory_factor,
+                    docker_image = seqspec_extract_docker_image
+            }
         }
     }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
-    File barcode_whitelist_ = select_first([barcode_whitelists[0], seqspec_extract.onlist[0]])
+    Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
     
-    String index_string_ = select_first([read_format, seqspec_extract.index_string[0] ])
+    Array[String] index_string_ = select_first([read_format, seqspec_extract.index_string ])
 
     if (  "~{pipeline_modality}" != "no_align" ) {
         
@@ -134,7 +137,7 @@ workflow wf_atac {
                 genome_name = genome_name,
                 subpool = subpool,
                 multimappers = align_multimappers,
-                barcode_inclusion_list = barcode_whitelist_,
+                barcode_inclusion_list = barcode_whitelist_[0],
                 barcode_conversion_dict = barcode_conversion_dict,
                 prefix = prefix,
                 disk_factor = align_disk_factor,
@@ -151,7 +154,7 @@ workflow wf_atac {
                 mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_
+                read_format = index_string_[0]
         }
 
         call task_align_chromap_bam.atac_align_chromap as generate_bam {
@@ -165,7 +168,7 @@ workflow wf_atac {
                 genome_name = genome_name,
                 subpool = subpool,
                 multimappers = align_multimappers,
-                barcode_inclusion_list = barcode_whitelist_,
+                barcode_inclusion_list = barcode_whitelist_[0],
                 barcode_conversion_dict = barcode_conversion_dict,
                 prefix = prefix,
                 disk_factor = align_bam_disk_factor,
@@ -182,7 +185,7 @@ workflow wf_atac {
                 mapq_threshold = mapq_threshold,
                 bc_error_threshold = bc_error_threshold,
                 bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_
+                read_format = index_string_[0]
         }
 
         call task_log_atac.log_atac as log_atac {

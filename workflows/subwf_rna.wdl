@@ -53,32 +53,32 @@ workflow wf_rna {
         Float? qc_rna_memory_factor
         String? qc_rna_docker_image  
     }
-
-    #should implement check if length of seqspecs == length of read1 == length of read2
-    scatter ( idx in range(length(seqspecs)) ) {
-        call task_seqspec_extract.seqspec_extract as seqspec_extract {
-            input:
-                seqspec = seqspecs[idx],
-                fastq_R1 = basename(read1[idx]),
-                fastq_R2 = basename(read2[idx]),
-                onlists = barcode_whitelists,
-                modality = "rna",
-                tool_format = "kb",
-                chemistry = chemistry,
-                #onlist_format = if chemistry=="shareseq" || chemistry=="parse" then "multi" else "product",
-                onlist_format = "product", #temp fix until bustools bug is fixed
-                cpus = seqspec_extract_cpus,
-                disk_factor = seqspec_extract_disk_factor,
-                memory_factor = seqspec_extract_memory_factor,
-                docker_image = seqspec_extract_docker_image
-        }
-    }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
-    File barcode_whitelist_ = select_first([barcode_whitelists[0] ,seqspec_extract.onlist[0]])
+    if (length(seqspecs) > 0) {
+        #should implement check if length of seqspecs == length of read1 == length of read2
+        scatter ( idx in range(length(seqspecs)) ) {
+            call task_seqspec_extract.seqspec_extract as seqspec_extract {
+                input:
+                    seqspec = seqspecs[idx],
+                    fastq_R1 = basename(read1[idx]),
+                    fastq_R2 = basename(read2[idx]),
+                    onlists = barcode_whitelists,
+                    modality = "rna",
+                    tool_format = "kb",
+                    chemistry = chemistry,
+                    #onlist_format = if chemistry=="shareseq" || chemistry=="parse" then "multi" else "product",
+                    onlist_format = "product", #temp fix until bustools bug is fixed
+                    cpus = seqspec_extract_cpus,
+                    disk_factor = seqspec_extract_disk_factor,
+                    memory_factor = seqspec_extract_memory_factor,
+                    docker_image = seqspec_extract_docker_image
+            }
+        }
+    }
+    Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
     
-    #Assuming this index_string is applicable to all fastqs for kb task
-    String index_string_ = select_first([read_format, seqspec_extract.index_string[0] ])
+    Array[String] index_string_ = select_first([read_format, seqspec_extract.index_string ])
 
     call task_kb.kb_count as kb{
         input:
@@ -88,8 +88,8 @@ workflow wf_rna {
             strand = kb_strand,
             kb_workflow = kb_workflow,
             kb_index_tar_gz = kb_index_tar_gz,
-            barcode_whitelist = barcode_whitelist_,
-            index_string = index_string_,
+            barcode_whitelist = barcode_whitelist_[0],
+            index_string = index_string_[0],
             subpool = subpool,
             genome_name = genome_name,
             prefix = prefix,
