@@ -38,8 +38,8 @@ workflow wf_atac {
         Int? align_multimappers = 4
         File reference_index_tar_gz
         Boolean? remove_pcr_duplicates = true
-        Boolean? remove_pcr_duplicates_at_cell_level = false
-        Boolean? remove_pcr_duplicates_at_bulk_level = true
+        Boolean? remove_pcr_duplicates_at_cell_level = true
+        Boolean? remove_pcr_duplicates_at_bulk_level = false
         Boolean? Tn5_shift = false
         Boolean? low_mem = true
         Boolean? bed_output = true
