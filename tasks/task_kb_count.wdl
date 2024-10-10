@@ -17,6 +17,7 @@ task kb_count {
                 
         Array[File] read1_fastqs #These filenames must EXACTLY match the ones specified in seqspec
         Array[File] read2_fastqs #These filenames must EXACTLY match the ones specified in seqspec
+        Array[File]? read_barcode_fastqs
         
         String modality = "rna"
         
@@ -76,7 +77,7 @@ task kb_count {
         bash $(which monitor_script.sh) 1>&2 &
         
         #set up fastq order as l1r1, l1r2, l2r1, l2r2, etc.
-        interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
+        interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read_barcode_fastqs}) <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
            
         mkdir ~{directory}
         tar -xzvf ~{kb_index_tar_gz}

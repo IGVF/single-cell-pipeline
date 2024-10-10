@@ -51,6 +51,7 @@ workflow singe_cell_pipeline {
         # RNA-specific inputs
         Array[File] read1_rna
         Array[File] read2_rna
+        Array[File] fastq_barcode_rna = []
         String? rna_read_format
         String? kb_workflow = "nac"
         File? kb_index_tar_gz
@@ -147,9 +148,20 @@ workflow singe_cell_pipeline {
             }
         }
     }
+    if (length(fastq_barcode_rna) > 0){
+        if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
+            scatter(file in fastq_barcode_rna){
+                call check_inputs.check_inputs as check_fastq_barcode_rna{
+                    input:
+                        path = file
+                }
+            }
+        }
+    }
     
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, read1_rna ])
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, read2_rna ])
+    Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
     
     #sample mode - use first million records in fastq
     if (sample_flag){   
@@ -208,6 +220,7 @@ workflow singe_cell_pipeline {
                 input:
                     read1 = select_first([sample_read1_rna.output_file,read1_rna_]),
                     read2 = select_first([sample_read2_rna.output_file,read2_rna_]),
+                    read_barcode = select_first([ sample_barcode.output_file, fastq_barcode_rna_ ]),
                     seqspecs = seqspecs_,
                     chemistry = chemistry,
                     barcode_whitelists = whitelist_rna,

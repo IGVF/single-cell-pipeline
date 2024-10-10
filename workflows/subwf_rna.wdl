@@ -17,6 +17,7 @@ workflow wf_rna {
     
         Array[File] read1
         Array[File] read2
+        Array[File]? read_barcode
                 
         Array[File] seqspecs
         String? read_format
@@ -84,6 +85,7 @@ workflow wf_rna {
         input:
             read1_fastqs = read1,
             read2_fastqs = read2,
+            read_barcode_fastqs = read_barcode,
             replacement_list = replacement_list,
             strand = kb_strand,
             kb_workflow = kb_workflow,
