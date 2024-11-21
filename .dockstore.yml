@@ -28,6 +28,7 @@ workflows:
          branches:
              - main
              - dev
+             - sw-seqspec-split
          tags:
              - /.*/
              

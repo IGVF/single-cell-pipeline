@@ -38,17 +38,35 @@ workflow wf_check_inputs {
     Boolean process_atac = if length(read1_atac)>0 then true else false
     Boolean process_rna = if length(read1_rna)>0 then true else false
     
-    if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
-        scatter(file in seqspecs){
-            call check_inputs.check_inputs as check_seqspec{
-                input:
-                    path = file
+    #seqspec_atac
+    if (length(seqspecs_atac) > 0) {
+        if (sub(seqspecs_atac[0], "^gs:\/\/", "") == sub(seqspecs_atac[0], "", "")){
+            scatter(file in seqspecs_atac){
+                call check_inputs.check_inputs as check_seqspec_atac{
+                    input:
+                        path = file
+                }
             }
         }
     }
     
-    Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
+    Array[File] seqspecs_atac_ = select_first([ check_seqspec_atac.output_file, seqspecs_atac ])
     
+    #seqspec_rna
+    if (length(seqspecs_rna) > 0) {
+        if (sub(seqspecs_rna[0], "^gs:\/\/", "") == sub(seqspecs_rna[0], "", "")){
+            scatter(file in seqspecs_rna){
+                call check_inputs.check_inputs as check_seqspec_rna{
+                    input:
+                        path = file
+                }
+            }
+        }
+    }
+    
+    Array[File] seqspecs_rna_ = select_first([ check_seqspec_rna.output_file, seqspecs_rna ])
+    
+        
     if(process_atac){
             #ATAC Read1
             if ( (sub(read1_atac[0], "^gs:\/\/", "") == sub(read1_atac[0], "", "")) ){
@@ -89,7 +107,7 @@ workflow wf_check_inputs {
         scatter ( idx in range(length(seqspecs)) ) {
         call task_seqspec_extract.seqspec_extract as atac_seqspec_extract {
             input:
-                seqspec = seqspecs_[idx],
+                seqspec = seqspecs_atac_[idx],
                 fastq_R1 = basename(read1_atac_[idx]),
                 fastq_R2 = basename(read2_atac_[idx]),
                 fastq_barcode = basename(fastq_barcode_[idx]),
@@ -140,7 +158,7 @@ workflow wf_check_inputs {
         scatter ( idx in range(length(seqspecs_)) ) {
             call task_seqspec_extract.seqspec_extract as rna_seqspec_extract {
                 input:
-                    seqspec = seqspecs_[idx],
+                    seqspec = seqspecs_rna_[idx],
                     fastq_R1 = basename(read1_rna_[idx]),
                     fastq_R2 = basename(read2_rna_[idx]),
                     onlists = whitelist_rna,
