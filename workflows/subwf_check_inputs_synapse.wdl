@@ -17,7 +17,8 @@ workflow wf_check_inputs {
         Array[File] whitelist_atac
         Array[File] whitelist_rna
         
-        Array[File] seqspecs
+        Array[File] seqspecs_atac
+        Array[File] seqspecs_rna
         
         Array[File] read1_atac
         Array[File] read2_atac
@@ -104,7 +105,7 @@ workflow wf_check_inputs {
         Array[String] read2_atac_ = select_first([ check_read2_atac.output_file, read2_atac ])
         Array[String] fastq_barcode_ = select_first([ check_fastq_barcode.output_file, fastq_barcode ])
         
-        scatter ( idx in range(length(seqspecs)) ) {
+        scatter ( idx in range(length(seqspecs_atac_)) ) {
         call task_seqspec_extract.seqspec_extract as atac_seqspec_extract {
             input:
                 seqspec = seqspecs_atac_[idx],
@@ -155,7 +156,7 @@ workflow wf_check_inputs {
         Array[String] read1_rna_ = select_first([ check_read1_rna.output_file, read1_rna ])
         Array[String] read2_rna_ = select_first([ check_read2_rna.output_file, read2_rna ])
 
-        scatter ( idx in range(length(seqspecs_)) ) {
+        scatter ( idx in range(length(seqspecs_rna_)) ) {
             call task_seqspec_extract.seqspec_extract as rna_seqspec_extract {
                 input:
                     seqspec = seqspecs_rna_[idx],
