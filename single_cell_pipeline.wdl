@@ -30,7 +30,8 @@ workflow singe_cell_pipeline {
         Array[File] whitelist_atac
         Array[File] whitelist_rna
         
-        Array[File] seqspecs
+        Array[File] seqspecs_rna
+        Array[File] seqspecs_atac
 
         # ATAC-specific inputs
         Array[File] read1_atac
@@ -75,11 +76,11 @@ workflow singe_cell_pipeline {
     Boolean process_atac = if length(read1_atac)>0 then true else false
     Boolean process_rna = if length(read1_rna)>0 then true else false
       
-    #seqspec
-    if (length(seqspecs) > 0) {
-        if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
-            scatter(file in seqspecs){
-                call check_inputs.check_inputs as check_seqspec{
+    #seqspec_atac
+    if (length(seqspecs_atac) > 0) {
+        if (sub(seqspecs_atac[0], "^gs:\/\/", "") == sub(seqspecs_atac[0], "", "")){
+            scatter(file in seqspecs_atac){
+                call check_inputs.check_inputs as check_seqspec_atac{
                     input:
                         path = file
                 }
@@ -87,8 +88,21 @@ workflow singe_cell_pipeline {
         }
     }
     
+    Array[File] seqspecs_atac_ = select_first([ check_seqspec_atac.output_file, seqspecs_atac ])
     
-    Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
+    #seqspec_rna
+    if (length(seqspecs_rna) > 0) {
+        if (sub(seqspecs_rna[0], "^gs:\/\/", "") == sub(seqspecs_rna[0], "", "")){
+            scatter(file in seqspecs_rna){
+                call check_inputs.check_inputs as check_seqspec_rna{
+                    input:
+                        path = file
+                }
+            }
+        }
+    }
+    
+    Array[File] seqspecs_rna_ = select_first([ check_seqspec_rna.output_file, seqspecs_rna ])
     
     if(process_atac){
         #ATAC Read1
@@ -221,7 +235,7 @@ workflow singe_cell_pipeline {
                     read1 = select_first([sample_read1_rna.output_file,read1_rna_]),
                     read2 = select_first([sample_read2_rna.output_file,read2_rna_]),
                     read_barcode = select_first([ sample_barcode.output_file, fastq_barcode_rna_ ]),
-                    seqspecs = seqspecs_,
+                    seqspecs = seqspecs_rna_,
                     chemistry = chemistry,
                     barcode_whitelists = whitelist_rna,
                     kb_workflow = kb_workflow,
@@ -240,7 +254,7 @@ workflow singe_cell_pipeline {
                 input:
                     read1 = select_first([sample_read1_atac.output_file,read1_atac_]),
                     read2 = select_first([sample_read2_atac.output_file,read2_atac_]),
-                    seqspecs = seqspecs_,
+                    seqspecs = seqspecs_atac_,
                     fastq_barcode = select_first([ sample_barcode.output_file, fastq_barcode_ ]),
                     chemistry = chemistry,
                     reference_fasta = genome_fasta_,

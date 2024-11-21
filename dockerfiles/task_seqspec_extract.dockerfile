@@ -21,9 +21,9 @@ RUN apt-get update && apt-get install -y \
     git && \
     rm -rf /var/lib/apt/lists/*
       
-#RUN pip install seqspec==0.2.0
+RUN pip install seqspec==0.3.0
 
-RUN pip install git+https://github.com/pachterlab/seqspec.git@devel
+#RUN pip install git+https://github.com/pachterlab/seqspec.git@devel
 
 
 # Create and setup new user
