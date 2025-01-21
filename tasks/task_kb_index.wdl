@@ -53,7 +53,7 @@ task kb_index {
 
         run_kallisto index ~{kb_mode} \
             --genome_fasta ~{genome_fasta} \
-            --genome_gtf ~{gene_gtf} \
+            --gtf ~{gene_gtf} \
             --output_dir ~{output_folder}
         
     >>>
