@@ -20,27 +20,26 @@ workflow wf_rna {
         Array[File]? read_barcode
                 
         Array[File] seqspecs
-        String? read_format
-        File? replacement_list
-        
-        #File genome_fasta
-        #File genome_gtf
-        File kb_index_tar_gz
+        String read_format
         String chemistry
+        File? replacement_list
+
+        File kb_index_tar_gz
         
-        Array[File] barcode_whitelists
+        Array[File] barcode_inclusion_list
         
-        String? subpool = "none"
+        String? subpool
         String genome_name # GRCh38, mm10
-        String prefix = "test-sample"
+        String prefix
         
         # RNA kb runtime parameters
-        String? kb_strand
+        String kb_strand
+        String kb_mode
         Int? kb_cpus
         Float? kb_disk_factor
         Float? kb_memory_factor
         String? kb_docker_image
-        String? kb_workflow = "nac"
+
         
         # RNA seqspec extract runtime parameters
         Int? seqspec_extract_cpus
@@ -64,7 +63,7 @@ workflow wf_rna {
                     seqspec = seqspecs[idx],
                     fastq_R1 = basename(read1[idx]),
                     fastq_R2 = basename(read2[idx]),
-                    onlists = barcode_whitelists,
+                    onlists = barcode_inclusion_list,
                     modality = "rna",
                     tool_format = "kb",
                     chemistry = chemistry,
@@ -77,9 +76,9 @@ workflow wf_rna {
             }
         }
     }
-    Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
+    Array[File] barcode_inclusion_list_ = select_first([barcode_inclusion_list, seqspec_extract.onlist])
     
-    String index_string_ = select_first([read_format, seqspec_extract.index_string ])
+    String read_format_ = select_first([read_format, seqspec_extract.index_string ])
 
     call task_kb.kb_count as kb{
         input:
@@ -88,14 +87,11 @@ workflow wf_rna {
             read_barcode_fastqs = read_barcode,
             replacement_list = replacement_list,
             strand = kb_strand,
-            kb_workflow = kb_workflow,
-            kb_index_tar_gz = kb_index_tar_gz,
-            barcode_whitelist = barcode_whitelist_[0],
-            index_string = index_string_,
+            kb_mode = kb_mode,
+            output_dir = prefix,
+            barcode_inclusion_list = barcode_inclusion_list_[0],
+            read_format = read_format_,
             subpool = subpool,
-            genome_name = genome_name,
-            prefix = prefix,
-            chemistry = chemistry,
             cpus = kb_cpus,
             disk_factor = kb_disk_factor,
             memory_factor = kb_memory_factor,
@@ -104,9 +100,9 @@ workflow wf_rna {
     
     call task_qc_rna.qc_rna as qc_rna {
         input:
-            counts_h5ad = kb.rna_mtxs_h5ad,
+            counts_h5ad = kb.rna_kb_h5ad,
             genome_name = genome_name,
-            kb_workflow = kb_workflow,
+            kb_workflow = kb_mode,
             prefix = prefix,
             cpus = qc_rna_cpus,
             disk_factor = qc_rna_disk_factor,
@@ -117,18 +113,16 @@ workflow wf_rna {
     #need to add duplicate logs from qc_rna in this task
     call task_log_rna.log_rna as log_rna {
         input:
-            alignment_json = kb.rna_alignment_json,
-            barcodes_json = kb.rna_barcode_matrics_json,
+            alignment_json = kb.rna_kb_alignment_metrics_json,
+            barcodes_json = kb.rna_kb_barcode_metrics_json,
             genome_name = genome_name, 
             prefix = prefix          
     }
 
     output {
-        File rna_align_log = kb.rna_alignment_json
-        File rna_kb_output = kb.rna_output
-        File rna_mtxs_tar = kb.rna_mtxs_tar
-        File rna_mtxs_h5ad = kb.rna_mtxs_h5ad
-        File? rna_aggregated_counts_h5ad = kb.rna_aggregated_counts_h5ad
+        File rna_align_log = kb.rna_kb_alignment_metrics_json
+        File rna_kb_output = kb.rna_kb_compressed_output_folder
+        File rna_h5ad = kb.rna_kb_h5ad
         File rna_log = log_rna.rna_logfile
         File rna_barcode_metadata = qc_rna.rna_barcode_metadata
         File? rna_umi_barcode_rank_plot = qc_rna.rna_umi_barcode_rank_plot
