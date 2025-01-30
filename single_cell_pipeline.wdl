@@ -83,7 +83,7 @@ workflow singe_cell_pipeline {
             }
         }
     }
-    if (sub(genome_fasta, "^gs:\/\/", "") == sub(genome_fasta, "", "")){
+    if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
         call check_inputs.check_inputs as check_genome_fasta{
             input:
                 path = genome_fasta_
@@ -208,7 +208,7 @@ workflow singe_cell_pipeline {
                     seqspecs = seqspecs_,
                     fastq_barcode = fastq_barcode_,
                     chemistry = chemistry,
-                    reference_fasta = check_genome_fasta.output_file,
+                    reference_fasta = select_first([check_genome_fasta.output_file, genome_fasta_]),
                     subpool = subpool,
                     gtf = gtf_,
                     barcode_whitelists = whitelist_atac,
