@@ -83,10 +83,11 @@ workflow singe_cell_pipeline {
             }
         }
     }
-    
-    call check_inputs.check_inputs as check_genome_fasta{
-        input:
-            path = genome_fasta_
+    if (sub(genome_fasta, "^gs:\/\/", "") == sub(genome_fasta, "", "")){
+        call check_inputs.check_inputs as check_genome_fasta{
+            input:
+                path = genome_fasta_
+        }
     }
     
     Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
