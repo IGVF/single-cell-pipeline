@@ -20,7 +20,7 @@ workflow wf_rna {
         Array[File]? read_barcode
                 
         Array[File] seqspecs
-        String read_format
+        String? read_format
         String chemistry
         File? replacement_list
 
@@ -87,6 +87,7 @@ workflow wf_rna {
             read_barcode_fastqs = read_barcode,
             replacement_list = replacement_list,
             strand = kb_strand,
+            kb_index_tar_gz = kb_index_tar_gz,
             kb_mode = kb_mode,
             output_dir = prefix,
             barcode_inclusion_list = barcode_inclusion_list_[0],

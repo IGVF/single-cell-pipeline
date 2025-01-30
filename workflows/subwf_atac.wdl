@@ -3,7 +3,7 @@ version 1.0
 # Import the tasks called by the pipeline
 import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_chromap.wdl" as task_align_chromap
-import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
+#import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
 import "../tasks/task_qc_atac.wdl" as task_qc_atac
 import "../tasks/task_log_atac.wdl" as task_log_atac
 
@@ -20,7 +20,7 @@ workflow wf_atac {
         File chrom_sizes
         File tss_bed
         String chemistry
-        String? prefix = "sample"
+        String prefix = "igvf_output_atac"
         String? subpool = "none"
         String genome_name
         File? gtf
@@ -35,19 +35,7 @@ workflow wf_atac {
         Array[File] fastq_barcode
         Array[File] seqspecs
         Array[File] barcode_whitelists
-        Int? align_multimappers = 4
         File reference_index_tar_gz
-        Boolean? remove_pcr_duplicates = true
-        Boolean? remove_pcr_duplicates_at_cell_level = true
-        Boolean? remove_pcr_duplicates_at_bulk_level = false
-        Boolean? Tn5_shift = false
-        Boolean? low_mem = true
-        Boolean? bed_output = true
-        Boolean? trim_adapters = true
-        Int? max_insert_size = 2000
-        Int? mapq_threshold = 0
-        Int? bc_error_threshold = 1
-        Float? bc_probability_threshold = 0.9
         String? read_format
         # Runtime parameters
         Int? align_cpus
@@ -123,109 +111,94 @@ workflow wf_atac {
     Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
     
     String index_string_ = select_first([read_format, seqspec_extract.index_string ])
-
-    if (  "~{pipeline_modality}" != "no_align" ) {
         
-        call task_align_chromap.atac_align_chromap as align {
-            input:
-                fastq_R1 = read1,
-                fastq_R2 = read2,
-                fastq_barcode = fastq_barcode,
-                reference_fasta = reference_fasta,
-                reference_index_tar_gz = reference_index_tar_gz,
-                trim_adapters = trim_adapters,
-                genome_name = genome_name,
-                subpool = subpool,
-                multimappers = align_multimappers,
-                barcode_inclusion_list = barcode_whitelist_[0],
-                barcode_conversion_dict = barcode_conversion_dict,
-                prefix = prefix,
-                disk_factor = align_disk_factor,
-                memory_factor = align_memory_factor,
-                cpus = align_cpus,
-                docker_image = align_docker_image,
-                remove_pcr_duplicates = remove_pcr_duplicates,
-                remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
-                remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,              
-                Tn5_shift = Tn5_shift,
-                low_mem = low_mem,
-                bed_output = bed_output,
-                max_insert_size = max_insert_size,
-                mapq_threshold = mapq_threshold,
-                bc_error_threshold = bc_error_threshold,
-                bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_
-        }
-
-        call task_align_chromap_bam.atac_align_chromap as generate_bam {
-            input:
-                fastq_R1 = read1,
-                fastq_R2 = read2,
-                fastq_barcode = fastq_barcode,
-                reference_fasta = reference_fasta,
-                reference_index_tar_gz = reference_index_tar_gz,
-                trim_adapters = trim_adapters,
-                genome_name = genome_name,
-                subpool = subpool,
-                multimappers = align_multimappers,
-                barcode_inclusion_list = barcode_whitelist_[0],
-                barcode_conversion_dict = barcode_conversion_dict,
-                prefix = prefix,
-                disk_factor = align_bam_disk_factor,
-                memory_factor = align_bam_memory_factor,
-                cpus = align_bam_cpus,
-                docker_image = align_docker_image,
-                remove_pcr_duplicates = remove_pcr_duplicates,
-                remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
-                remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,
-                Tn5_shift = Tn5_shift,
-                low_mem = low_mem,
-                bed_output = bed_output,
-                max_insert_size = max_insert_size,
-                mapq_threshold = mapq_threshold,
-                bc_error_threshold = bc_error_threshold,
-                bc_probability_threshold = bc_probability_threshold,
-                read_format = index_string_
-        }
-
-        call task_log_atac.log_atac as log_atac {
-            input:
-                alignment_log = align.atac_alignment_log,
-                barcode_log = align.atac_align_barcode_statistics,
-                prefix = prefix
-        }
-
-        call task_qc_atac.qc_atac as qc_atac{
-            input:
-                fragments = align.atac_fragments,
-                fragments_index = align.atac_fragments_index,
-                barcode_summary = align.atac_align_barcode_statistics,
-                tss = tss_bed,
-                gtf = gtf,
-                subpool = subpool,
-                barcode_conversion_dict = barcode_conversion_dict,
-                fragment_min_snapatac_cutoff = qc_fragment_min_cutoff,
-                chrom_sizes = chrom_sizes,
-                genome_name = genome_name,
-                prefix = prefix,
-                cpus = qc_cpus,
-                disk_factor = qc_disk_factor,
-                docker_image = qc_docker_image,
-                memory_factor = qc_memory_factor
-         }
+    call task_align_chromap.atac_align_chromap as align {
+        input:
+            fastq_R1 = read1,
+            fastq_R2 = read2,
+            fastq_barcode = fastq_barcode,
+            reference_fasta = reference_fasta,
+            reference_index_tar_gz = reference_index_tar_gz,
+            subpool = subpool,
+            output_dir = prefix,
+            barcode_inclusion_list = barcode_whitelist_[0],
+            barcode_conversion_dict = barcode_conversion_dict,
+            disk_factor = align_disk_factor,
+            memory_factor = align_memory_factor,
+            cpus = align_cpus,
+            docker_image = align_docker_image,
+            read_format = index_string_
     }
+
+    # call task_align_chromap_bam.atac_align_chromap as generate_bam {
+    #     input:
+    #         fastq_R1 = read1,
+    #         fastq_R2 = read2,
+    #         fastq_barcode = fastq_barcode,
+    #         reference_fasta = reference_fasta,
+    #         reference_index_tar_gz = reference_index_tar_gz,
+    #         trim_adapters = trim_adapters,
+    #         genome_name = genome_name,
+    #         subpool = subpool,
+    #         multimappers = align_multimappers,
+    #         barcode_inclusion_list = barcode_whitelist_[0],
+    #         barcode_conversion_dict = barcode_conversion_dict,
+    #         prefix = prefix,
+    #         disk_factor = align_bam_disk_factor,
+    #         memory_factor = align_bam_memory_factor,
+    #         cpus = align_bam_cpus,
+    #         docker_image = align_docker_image,
+    #         remove_pcr_duplicates = remove_pcr_duplicates,
+    #         remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
+    #         remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,
+    #         Tn5_shift = Tn5_shift,
+    #         low_mem = low_mem,
+    #         bed_output = bed_output,
+    #         max_insert_size = max_insert_size,
+    #         mapq_threshold = mapq_threshold,
+    #         bc_error_threshold = bc_error_threshold,
+    #         bc_probability_threshold = bc_probability_threshold,
+    #         read_format = index_string_
+    # }
+
+    call task_log_atac.log_atac as log_atac {
+        input:
+            alignment_log = align.atac_alignment_log,
+            barcode_log = align.atac_barcode_summary,
+            prefix = prefix
+    }
+
+    call task_qc_atac.qc_atac as qc_atac{
+        input:
+            fragments = align.atac_fragments,
+            fragments_index = align.atac_fragments_index,
+            barcode_summary = align.atac_barcode_summary,
+            tss = tss_bed,
+            gtf = gtf,
+            subpool = subpool,
+            barcode_conversion_dict = barcode_conversion_dict,
+            fragment_min_snapatac_cutoff = qc_fragment_min_cutoff,
+            chrom_sizes = chrom_sizes,
+            genome_name = genome_name,
+            prefix = prefix,
+            cpus = qc_cpus,
+            disk_factor = qc_disk_factor,
+            docker_image = qc_docker_image,
+            memory_factor = qc_memory_factor
+        }
 
     output {
         # Align
-        File? atac_alignment_log = align.atac_alignment_log
-        File? atac_chromap_bam = generate_bam.atac_bam
-        File? atac_chromap_bam_index = generate_bam.atac_bam_index
-        File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
+        File atac_chromap_alignment_log = align.atac_alignment_log
+        File atac_fragments = align.atac_fragments
+        File atac_fragments_index = align.atac_fragments_index
+        File atac_chromap_barcode_summary = align.atac_barcode_summary
 
-        # Filter
-        File? atac_fragments = align.atac_fragments
-        File? atac_fragments_index = align.atac_fragments_index
+        #File? atac_chromap_bam = generate_bam.atac_bam
+        #File? atac_chromap_bam_index = generate_bam.atac_bam_index
+        #File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
 
+        
         # QC
         File? atac_qc_chromap_barcode_metadata = qc_atac.atac_qc_chromap_barcode_metadata
         File? atac_qc_snapatac2_barcode_metadata = qc_atac.atac_qc_snapatac2_barcode_metadata

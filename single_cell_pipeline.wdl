@@ -53,7 +53,7 @@ workflow singe_cell_pipeline {
         Array[File] read2_rna
         Array[File] fastq_barcode_rna = []
         String? rna_read_format
-        String? kb_workflow = "nac"
+        String kb_mode = "nac"
         File? kb_index_tar_gz
 
         File? chromap_index_tar_gz
@@ -69,7 +69,7 @@ workflow singe_cell_pipeline {
     File genome_fasta_ = select_first([genome_fasta, annotations["fasta"]])
     File tss_bed_ = select_first([tss_bed, annotations["tss"]])
     File gtf_ = select_first([gtf, annotations["genesgtf"]])
-    File idx_tar_rna_ = if (kb_workflow == "standard") then select_first([kb_index_tar_gz, annotations["kb_standard_idx_tar"]]) else select_first([kb_index_tar_gz, annotations["kb_nac_idx_tar"]])
+    File idx_tar_rna_ = if (kb_mode == "standard") then select_first([kb_index_tar_gz, annotations["kb_standard_idx_tar"]]) else select_first([kb_index_tar_gz, annotations["kb_nac_idx_tar"]])
     File idx_tar_atac_ = select_first([chromap_index_tar_gz, annotations["chromap_idx_tar"]])
 
     Boolean process_atac = if length(read1_atac)>0 then true else false
@@ -223,8 +223,8 @@ workflow singe_cell_pipeline {
                     read_barcode = select_first([ sample_barcode.output_file, fastq_barcode_rna_ ]),
                     seqspecs = seqspecs_,
                     chemistry = chemistry,
-                    barcode_whitelists = whitelist_rna,
-                    kb_workflow = kb_workflow,
+                    barcode_inclusion_list = whitelist_rna,
+                    kb_mode = kb_mode,
                     kb_index_tar_gz = idx_tar_rna_,
                     prefix = prefix,
                     subpool = subpool,
@@ -286,24 +286,22 @@ workflow singe_cell_pipeline {
                             atac.atac_qc_barcode_rank_plot, atac.atac_qc_insertion_size_histogram, atac.atac_qc_tss_enrichment],
 
                 ## Links to files and logs to append to end of html
-                log_files = [rna.rna_align_log, rna.rna_log, atac.atac_alignment_log]
+                log_files = [rna.rna_align_log, rna.rna_log, atac.atac_chromap_alignment_log]
 
         }
     }
 
     output{
         # RNA outputs
+        File? rna_h5ad = rna.rna_h5ad
         File? rna_kb_output = rna.rna_kb_output
-        File? rna_mtx_tar = rna.rna_mtxs_tar
-        File? rna_mtxs_h5ad = rna.rna_mtxs_h5ad
-        File? rna_aggregated_counts_h5ad = rna.rna_aggregated_counts_h5ad
-        File? rna_log = rna.rna_log
+        File? rna_align_log = rna.rna_align_log
         File? rna_barcode_metadata  = rna.rna_barcode_metadata
         
         # ATAC ouputs
-        File? atac_bam = atac.atac_chromap_bam
-        File? atac_bam_index = atac.atac_chromap_bam_index
-        File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
+        #File? atac_bam = atac.atac_chromap_bam
+        #File? atac_bam_index = atac.atac_chromap_bam_index
+        #File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
         File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata
