@@ -11,7 +11,7 @@ task generate_chromap_index {
     }
 
     input {
-        File reference_fasta
+        File genome_fasta
         String output_dir
 
         Int? cpus = 1
@@ -23,9 +23,9 @@ task generate_chromap_index {
     }
 
     # Determine the size of the input
-    Float input_file_size_gb = size(reference_fasta, "G")
+    Float input_file_size_gb = size(genome_fasta, "G")
     # Determining memory size base on the size of the input files.
-    Float mem_gb = 32.0 + size(reference_fasta, "G") + memory_factor * input_file_size_gb
+    Float mem_gb = 32.0 + size(genome_fasta, "G") + memory_factor * input_file_size_gb
 
     # Determining disk size base on the size of the input files.
     Int disk_gb = round(40.0 + disk_factor * input_file_size_gb)
@@ -41,7 +41,7 @@ task generate_chromap_index {
         # Create index
         mkdir ~{output_dir}
         echo '------ indexing ------' 1>&2
-        run_chromap index --genome_fasta ~{reference_fasta} --output_dir ~{output_dir}
+        run_chromap index --genome_fasta ~{genome_fasta} --output_dir ~{output_dir}
 
     >>>
 
@@ -64,7 +64,7 @@ task generate_chromap_index {
                 help: 'Output directory for the index.',
                 default: "chromap_index"
             }
-        reference_fasta: {
+        genome_fasta: {
                 description: 'Reference FASTA file.',
                 help: 'Reference FASTA file for the alignment step.',
                 example: ["hg38.fa"]
