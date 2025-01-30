@@ -68,7 +68,7 @@ task atac_align_chromap {
         # The start and end are inclusive and -1 means the end of the read. User may use multiple fields to specify non-consecutive segments, e.g. bc:0:15,bc:32:-1.
         # The strand is presented by '+' and '-' symbol, if '-' the barcode will be reverse-complemented after extraction
         echo '------ align chromap ------' 1>&2
-        run_chromap quantify \
+        run_chromap align \
             --index_dir ~{reference_index_tar_gz} \
             --read_format ~{read_format} \
             --reference_fasta ~{reference_fasta} \
