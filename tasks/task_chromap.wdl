@@ -55,6 +55,8 @@ task atac_align_chromap {
         echo '------ Extracting indexing ------' 1>&2
         time tar -xzf ~{reference_index_tar_gz}
 
+        mkdir -p ~{output_dir}
+
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the barcode inclusion list ------' 1>&2
             gunzip -c ~{barcode_inclusion_list} > barcode_inclusion_list.txt

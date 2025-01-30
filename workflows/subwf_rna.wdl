@@ -55,7 +55,7 @@ workflow wf_rna {
     }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
-    if (length(seqspecs) > 0) {
+    if (length(seqspecs) > 0 && !defined(read_format)) {
         #should implement check if length of seqspecs == length of read1 == length of read2
         scatter ( idx in range(length(seqspecs)) ) {
             call task_seqspec_extract.seqspec_extract as seqspec_extract {
