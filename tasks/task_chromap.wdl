@@ -55,7 +55,7 @@ task atac_align_chromap {
 
         # Extracting index
         echo '------ Extracting indexing ------' 1>&2
-        tar -xzf ~{reference_index_tar_gz}
+        tar xvzf ~{reference_index_tar_gz} --no-same-owner -C ./
 
         mkdir -p ~{output_dir}
 

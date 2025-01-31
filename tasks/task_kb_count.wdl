@@ -68,7 +68,7 @@ task kb_count {
         interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read_barcode_fastqs}) <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
            
         mkdir ~{output_dir}
-        tar -xzvf ~{kb_index_tar_gz}
+        tar xvzf ~{kb_index_tar_gz} --no-same-owner -C ./
         
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2

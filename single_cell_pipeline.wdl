@@ -16,34 +16,35 @@ workflow singe_cell_pipeline {
         # Common inputs
         File? gtf
         String chemistry
-        String prefix
-        String? subpool = "none"
-        String pipeline_modality = "full" # "full": run everything; "count_only": stops after producing fragment file and count matrix; "no_align": correct and trim raw fastqs.
+        String prefix # Analysis set
+        String? subpool = "none" # To address
+        String pipeline_modality = "full" # to be removed "full": run everything; "count_only": stops after producing fragment file and count matrix; "no_align": correct and trim raw fastqs.
         File? genome_fasta
         
         #can be removed
         File whitelists_tsv = 'gs://broad-buenrostro-pipeline-genome-annotations/whitelists/whitelists.tsv'
         
-        Array[File] whitelist_atac
-        Array[File] whitelist_rna
+        Array[File] whitelist_atac # one file
+        Array[File] whitelist_rna # one file
         
-        Array[File] seqspecs
+        Array[File] seqspecs # not used in this version
 
         # ATAC-specific inputs
         Array[File] read1_atac
         Array[File] read2_atac
         Array[File] fastq_barcode
-        Boolean count_only = false
+        Boolean count_only = false # to be removed
         File? chrom_sizes
-        File? atac_genome_index_tar
-        File? tss_bed
+        File? atac_genome_index_tar # it's going to be removed
+        File? tss_bed # to be removed
 
         # ATAC - Align
+        String is_single_cell = "true" 
 
         # ATAC - Filter
         ## Biological
         String? atac_read_format
-        Int? atac_filter_minimum_fragments_cutoff = 1
+        Int? atac_filter_minimum_fragments_cutoff = 1 # to be removed
 
         # RNA-specific inputs
         Array[File] read1_rna
@@ -56,7 +57,7 @@ workflow singe_cell_pipeline {
         File? chromap_index_tar_gz
 
         
-        File genome_tsv
+        File genome_tsv # this on the portal
         String? genome_name
     }
 
@@ -270,6 +271,12 @@ workflow singe_cell_pipeline {
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
         File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata
+        # Alignment log
+
+        # Extra outputs
+
+
+
         File? atac_snapatac2_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata
 
         # Joint outputs
