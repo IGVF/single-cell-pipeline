@@ -50,7 +50,6 @@ task kb_index {
         bash $(which monitor_script.sh) 1>&2 &
              
         mkdir ~{output_folder}
-        mkdir ./kb_tmp_dir
 
         run_kallisto index ~{kb_mode} \
             --temp_dir ./kb_tmp_dir \
