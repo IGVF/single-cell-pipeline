@@ -50,10 +50,9 @@ task kb_index {
         bash $(which monitor_script.sh) 1>&2 &
              
         mkdir ~{output_folder}
-        mkdir tmp
 
         run_kallisto index ~{kb_mode} \
-            --temp_dir tmp \
+            --temp_dir ./kb_tmp_dir \
             --genome_fasta ~{genome_fasta} \
             --gtf ~{gene_gtf} \
             --output_dir ~{output_folder}
