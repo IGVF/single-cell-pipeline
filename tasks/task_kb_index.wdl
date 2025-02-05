@@ -19,6 +19,7 @@ task kb_index {
         File gene_gtf   
         String kb_mode #kb_mode can be either "nac" or "standard"
         String output_folder
+        String? kb_temp_folder
         
         Int? cpus = 4
         Float? disk_factor = 1
@@ -52,7 +53,7 @@ task kb_index {
         mkdir ~{output_folder}
 
         run_kallisto index ~{kb_mode} \
-            --temp_dir ./kb_tmp_dir \
+            ~{"--temp_dir " + kb_temp_folder} \
             --genome_fasta ~{genome_fasta} \
             --gtf ~{gene_gtf} \
             --output_dir ~{output_folder}

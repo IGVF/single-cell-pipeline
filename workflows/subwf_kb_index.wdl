@@ -15,6 +15,7 @@ workflow wf_rna {
         File gene_gtf
         String kb_mode
         String output_folder
+        String? kb_temp_folder
     }
 
     call task_check_inputs.check_inputs as genome_check {
@@ -32,7 +33,8 @@ workflow wf_rna {
             genome_fasta = genome_check.output_file,
             gene_gtf = gtf_check.output_file,
             kb_mode = kb_mode,
-            output_folder = output_folder
+            output_folder = output_folder,
+            kb_temp_folder = kb_temp_folder
     }
 
     output {
