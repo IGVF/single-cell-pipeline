@@ -34,10 +34,10 @@ task kb_index {
     Float input_file_size_gb = size(genome_fasta, "G") + size(gene_gtf, "G")
 
     # Determining memory size base on the size of the input files.
-    Float mem_gb = 24.0 + memory_factor * input_file_size_gb
+    Float mem_gb = 48 + memory_factor * input_file_size_gb
 
     # Determining disk size base on the size of the input files.
-    Int disk_gb = round(40.0 + disk_factor * input_file_size_gb)
+    Int disk_gb = round(50.0 + disk_factor * input_file_size_gb)
 
     # Determining disk type base on the size of disk.
     String disk_type = if disk_gb > 375 then "SSD" else "LOCAL"
@@ -50,8 +50,10 @@ task kb_index {
         bash $(which monitor_script.sh) 1>&2 &
              
         mkdir ~{output_folder}
+        mkdir tmp
 
         run_kallisto index ~{kb_mode} \
+            --temp_dir tmp \
             --genome_fasta ~{genome_fasta} \
             --gtf ~{gene_gtf} \
             --output_dir ~{output_folder}
