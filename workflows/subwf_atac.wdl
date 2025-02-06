@@ -120,7 +120,7 @@ workflow wf_atac {
             reference_fasta = reference_fasta,
             reference_index_tar_gz = reference_index_tar_gz,
             subpool = subpool,
-            output_dir = prefix,
+            prefix = prefix,
             barcode_inclusion_list = barcode_whitelist_[0],
             barcode_conversion_dict = barcode_conversion_dict,
             disk_factor = align_disk_factor,

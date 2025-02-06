@@ -20,7 +20,7 @@ task atac_align_chromap {
         File? barcode_conversion_dict
         File reference_fasta        
         String read_format
-        String output_dir
+        String prefix
 
         String? subpool
 
@@ -57,8 +57,6 @@ task atac_align_chromap {
         echo '------ Extracting indexing ------' 1>&2
         tar xvzf ~{reference_index_tar_gz} --no-same-owner -C ./
 
-        mkdir -p ~{output_dir}
-
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the barcode inclusion list ------' 1>&2
             gunzip -c ~{barcode_inclusion_list} > barcode_inclusion_list.txt
@@ -76,7 +74,7 @@ task atac_align_chromap {
             --index_dir ~{index_dir} \
             --read_format ~{read_format} \
             --reference_fasta ~{reference_fasta} \
-            --output_dir ~{output_dir} \
+            --prefix ~{prefix} \
             ~{"--subpool " + subpool} \
             --threads ~{cpus} \
             --barcode_onlist barcode_inclusion_list.txt \
@@ -89,10 +87,10 @@ task atac_align_chromap {
     >>>
 
     output {
-        File atac_fragments = "~{output_dir}.fragments.tsv.gz"
-        File atac_fragments_index = "~{output_dir}.fragments.tsv.gz.tbi"
-        File atac_barcode_summary = "~{output_dir}.barcode.summary.csv"
-        File atac_alignment_log = "~{output_dir}.log.txt"
+        File atac_fragments = "~{prefix}.fragments.tsv.gz"
+        File atac_fragments_index = "~{prefix}.fragments.tsv.gz.tbi"
+        File atac_barcode_summary = "~{prefix}.barcode.summary.csv"
+        File atac_alignment_log = "~{prefix}.log.txt"
     }
 
 
@@ -104,6 +102,11 @@ task atac_align_chromap {
     }
 
     parameter_meta {
+        prefix: {
+            description: 'Prefix for the output files.',
+            help: 'Prefix for the output files.',
+            example: 'output.atac'
+        }
         fastq_R1: {
             description: 'Read1 fastq.',
             help: 'Processed fastq for read1.',
