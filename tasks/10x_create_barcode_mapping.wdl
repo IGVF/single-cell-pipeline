@@ -12,8 +12,8 @@ task mapping_tenx_barcodes {
 
     input {
         # This task takes in input the 3 fastqs coming out from cellranger mkfastqs and preprocess them.
-        File whitelist_atac # Barcode whitelist (chemistry specific)
-        File whitelist_rna # Barcode whitelist (chemistry specific)
+        File atac_barcode_inclusion_list # Barcode whitelist (chemistry specific)
+        File rna_barcode_inclusion_list # Barcode whitelist (chemistry specific)
 
         Int? cpus = 16
         Float? disk_factor = 0.5
@@ -22,7 +22,7 @@ task mapping_tenx_barcodes {
     }
 
     # Determine the size of the input
-    Float input_file_size_gb = size(whitelist_rna, "G") + size(whitelist_atac, "G")
+    Float input_file_size_gb = size(rna_barcode_inclusion_list, "G") + size(atac_barcode_inclusion_list, "G")
 
     # Determining memory size base on the size of the input files.
     Float mem_gb = 5.0 + memory_factor * input_file_size_gb
@@ -38,20 +38,20 @@ task mapping_tenx_barcodes {
     command <<<
         set -e
         
-        if [[ '~{whitelist_atac}' == *.gz ]]; then
+        if [[ '~{atac_barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the ATAC barcode inclusion list ------' 1>&2
-            gunzip -c ~{whitelist_atac} > atac_barcode_inclusion_list.txt
+            gunzip -c ~{atac_barcode_inclusion_list} > atac_barcode_inclusion_list.txt
         else
             echo '------ No decompression needed for the ATAC barcode inclusion list ------' 1>&2
-            cat ~{whitelist_atac} > atac_barcode_inclusion_list.txt
+            cat ~{atac_barcode_inclusion_list} > atac_barcode_inclusion_list.txt
         fi
         
-        if [[ '~{whitelist_rna}' == *.gz ]]; then
+        if [[ '~{rna_barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2
-            gunzip -c ~{whitelist_rna} > rna_barcode_inclusion_list.txt
+            gunzip -c ~{rna_barcode_inclusion_list} > rna_barcode_inclusion_list.txt
         else
             echo '------ No decompression needed for the RNA barcode inclusion list ------' 1>&2
-            cat ~{whitelist_rna} > rna_barcode_inclusion_list.txt
+            cat ~{rna_barcode_inclusion_list} > rna_barcode_inclusion_list.txt
         fi
 
         if [ "$(cat atac_barcode_inclusion_list.txt | wc -l)" -eq "$(cat rna_barcode_inclusion_list.txt | wc -l)" ]; then

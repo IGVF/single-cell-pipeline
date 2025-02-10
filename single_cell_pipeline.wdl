@@ -5,70 +5,45 @@ import "tasks/task_check_inputs.wdl" as check_inputs
 import "workflows/subwf_atac.wdl" as subwf_atac
 import "workflows/subwf_rna.wdl" as subwf_rna
 import "tasks/10x_create_barcode_mapping.wdl" as tenx_barcode_map
-import "tasks/task_joint_qc.wdl" as joint_qc
-import "tasks/task_html_report.wdl" as html_report
 
 # WDL workflow for SHARE-seq
 
-workflow singe_cell_pipeline {
+workflow single_cell_pipeline {
 
     input {
-        # Common inputs
-        File? gtf
+        # Commond inputs
         String chemistry
         String prefix # Analysis set
         String? subpool = "none" # To address
-        String pipeline_modality = "full" # to be removed "full": run everything; "count_only": stops after producing fragment file and count matrix; "no_align": correct and trim raw fastqs.
-        File? genome_fasta
-        
-        #can be removed
-        File whitelists_tsv = 'gs://broad-buenrostro-pipeline-genome-annotations/whitelists/whitelists.tsv'
-        
-        Array[File] whitelist_atac # one file
-        Array[File] whitelist_rna # one file
-        
-        Array[File] seqspecs # not used in this version
+        String is_single_cell = "true"
+        File genome_tsv
+        Array[File] seqspecs
 
         # ATAC-specific inputs
         Array[File] read1_atac
         Array[File] read2_atac
         Array[File] fastq_barcode
-        Boolean count_only = false # to be removed
-        File? chrom_sizes
-        File? atac_genome_index_tar # it's going to be removed
-        File? tss_bed # to be removed
-
-        # ATAC - Align
-        String is_single_cell = "true" 
-
-        # ATAC - Filter
-        ## Biological
+        Array[File] atac_barcode_inclusion_list
+        File? chromap_genome_index_tar_gz
+        File? genome_fasta
         String? atac_read_format
-        Int? atac_filter_minimum_fragments_cutoff = 1 # to be removed
+
 
         # RNA-specific inputs
         Array[File] read1_rna
         Array[File] read2_rna
         Array[File] fastq_barcode_rna = []
-        String? rna_read_format
+        Array[File] rna_barcode_inclusion_list
         String kb_mode = "nac"
-        File? kb_index_tar_gz
-
-        File? chromap_index_tar_gz
-
-        
-        File genome_tsv # this on the portal
-        String? genome_name
+        String? rna_read_format
+        File? kb_genome_index_tar_gz
     }
 
     Map[String, File] annotations = read_map(genome_tsv)
-    String genome_name_ =  select_first([genome_name, annotations["genome_name"]])
-    File chrom_sizes_ = select_first([chrom_sizes, annotations["chrsz"]])
+    String genome_name_ =  annotations["genome_name"]
     File genome_fasta_ = select_first([genome_fasta, annotations["fasta"]])
-    File tss_bed_ = select_first([tss_bed, annotations["tss"]])
-    File gtf_ = select_first([gtf, annotations["genesgtf"]])
-    File idx_tar_rna_ = if (kb_mode == "standard") then select_first([kb_index_tar_gz, annotations["kb_standard_idx_tar"]]) else select_first([kb_index_tar_gz, annotations["kb_nac_idx_tar"]])
-    File idx_tar_atac_ = select_first([chromap_index_tar_gz, annotations["chromap_idx_tar"]])
+    File idx_tar_rna_ = if (kb_mode == "standard") then select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]]) else select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]])
+    File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_genome_index_tar_gz"]])
 
     Boolean process_atac = if length(read1_atac)>0 then true else false
     Boolean process_rna = if length(read1_rna)>0 then true else false
@@ -174,8 +149,8 @@ workflow singe_cell_pipeline {
         if ( chemistry == "10x_multiome" && process_rna){
             call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
                 input:
-                    whitelist_atac = whitelist_atac[0],
-                    whitelist_rna = whitelist_rna[0]
+                    atac_barcode_inclusion_list = atac_barcode_inclusion_list[0],
+                    rna_barcode_inclusion_list = rna_barcode_inclusion_list[0]
             }
         }
     }
@@ -189,7 +164,7 @@ workflow singe_cell_pipeline {
                     read_barcode = fastq_barcode_rna_,
                     seqspecs = seqspecs_,
                     chemistry = chemistry,
-                    barcode_inclusion_list = whitelist_rna,
+                    barcode_inclusion_list = rna_barcode_inclusion_list,
                     kb_mode = kb_mode,
                     kb_index_tar_gz = idx_tar_rna_,
                     prefix = prefix,
@@ -211,80 +186,36 @@ workflow singe_cell_pipeline {
                     chemistry = chemistry,
                     reference_fasta = select_first([check_genome_fasta.output_file, genome_fasta_]),
                     subpool = subpool,
-                    gtf = gtf_,
-                    barcode_whitelists = whitelist_atac,
-                    chrom_sizes = chrom_sizes_,
+                    barcode_inclusion_list = atac_barcode_inclusion_list,
                     reference_index_tar_gz = idx_tar_atac_,
-                    tss_bed = tss_bed_,
                     prefix = prefix,
                     read_format = atac_read_format,
-                    genome_name = genome_name_,
                     barcode_conversion_dict = barcode_mapping.tenx_barcode_conversion_dict,
-                    pipeline_modality = pipeline_modality
             }
-        }
-    }
-
-    if ( process_atac && process_rna ) {
-        if ( read1_atac[0] != "" && read1_rna[0] != "" ) {            
-            if ( pipeline_modality != "no_align" ) {
-                call joint_qc.joint_qc_plotting as joint_qc {
-                    input:
-                        atac_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata,
-                        rna_barcode_metadata = rna.rna_barcode_metadata,
-                        prefix = prefix,
-                        genome_name = genome_name_
-                }
-            }
-        }
-    }
-
-    if ( pipeline_modality != "no_align" ) {
-        call html_report.html_report as html_report {
-            input:
-                prefix = prefix,
-                atac_metrics = atac.atac_qc_metrics,
-                rna_metrics = rna.rna_log,
-                ## JPEG files to be encoded and appended to html
-                # RNA plots
-                image_files = [joint_qc.joint_qc_plot, joint_qc.joint_density_plot,
-                            rna.rna_umi_barcode_rank_plot, rna.rna_gene_barcode_rank_plot, rna.rna_gene_umi_scatter_plot,
-                            atac.atac_qc_barcode_rank_plot, atac.atac_qc_insertion_size_histogram, atac.atac_qc_tss_enrichment],
-
-                ## Links to files and logs to append to end of html
-                log_files = [rna.rna_align_log, rna.rna_log, atac.atac_chromap_alignment_log]
-
         }
     }
 
     output{
         # RNA outputs
-        File? rna_h5ad = rna.rna_h5ad
-        File? rna_kb_output = rna.rna_kb_output
-        File? rna_align_log = rna.rna_align_log
-        File? rna_barcode_metadata  = rna.rna_barcode_metadata
-        
+        File? rna_kb_h5ad = rna.rna_kb_h5ad
+        File? rna_kb_output_folder_tar_gz = rna.rna_kb_output_folder_tar_gz
+        File? rna_kb_run_info_json = rna.rna_kb_run_info_json
+        File? rna_kb_library_qc_metrics_json = rna.rna_kb_library_qc_metrics_json
+        File? rna_kb_parameters_json = rna.rna_kb_parameters_json
+    
+
         # ATAC ouputs
         #File? atac_bam = atac.atac_chromap_bam
         #File? atac_bam_index = atac.atac_chromap_bam_index
         #File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
-        File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata
-        # Alignment log
+        File? atac_fragments_log = atac.atac_fragments_alignment_stats
+        File? atac_qc_metrics = atac.atac_qc_metrics
+        File? atac_fragments_alignment_stats = atac.atac_fragments_alignment_stats
+        File? atac_chromap_barcode_summary = atac.atac_chromap_barcode_summary
 
-        # Extra outputs
 
-
-
-        File? atac_snapatac2_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata
-
-        # Joint outputs
-        File? joint_barcode_metadata = joint_qc.joint_barcode_metadata
-
-        # Report
-        File? html_summary = html_report.html_report_file
-        File? csv_summary = html_report.csv_summary_file
     }
 
 }

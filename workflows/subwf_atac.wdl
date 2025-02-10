@@ -4,7 +4,6 @@ version 1.0
 import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_chromap.wdl" as task_align_chromap
 #import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
-import "../tasks/task_qc_atac.wdl" as task_qc_atac
 import "../tasks/task_log_atac.wdl" as task_log_atac
 
 
@@ -17,15 +16,11 @@ workflow wf_atac {
 
     input {
         # ATAC sub-workflow inputs
-        File chrom_sizes
-        File tss_bed
         String chemistry
         String prefix = "igvf_output_atac"
         String? subpool = "none"
         String genome_name
-        File? gtf
-        Int? cutoff
-        String pipeline_modality = "full"
+
         File? barcode_conversion_dict # For 10X multiome
         File reference_fasta
 
@@ -34,7 +29,7 @@ workflow wf_atac {
         Array[File] read2
         Array[File] fastq_barcode
         Array[File] seqspecs
-        Array[File] barcode_whitelists
+        Array[File] barcode_inclusion_list
         File reference_index_tar_gz
         String? read_format
         # Runtime parameters
@@ -85,7 +80,7 @@ workflow wf_atac {
         String? seqspec_extract_docker_image
     }
     # run only if seqspec array is not empty
-    if (length(seqspecs) > 0) {
+    if (length(seqspecs) > 0 && !defined(read_format)) {
         #should implement check if length of seqspecs == length of read1 == length of read2
         scatter ( idx in range(length(seqspecs)) ) {
             call task_seqspec_extract.seqspec_extract as seqspec_extract {
@@ -94,7 +89,7 @@ workflow wf_atac {
                     fastq_R1 = basename(read1[idx]),
                     fastq_R2 = basename(read2[idx]),
                     fastq_barcode = basename(fastq_barcode[idx]),
-                    onlists = barcode_whitelists,
+                    onlists = barcode_inclusion_list,
                     modality = "atac",
                     tool_format = "chromap",
                     onlist_format = "product",
@@ -108,7 +103,7 @@ workflow wf_atac {
     }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
-    Array[File] barcode_whitelist_ = select_first([barcode_whitelists, seqspec_extract.onlist])
+    Array[File] barcode_inclusion_list_ = select_first([barcode_inclusion_list, seqspec_extract.onlist])
     
     String index_string_ = select_first([read_format, seqspec_extract.index_string ])
         
@@ -121,7 +116,7 @@ workflow wf_atac {
             reference_index_tar_gz = reference_index_tar_gz,
             subpool = subpool,
             prefix = prefix,
-            barcode_inclusion_list = barcode_whitelist_[0],
+            barcode_inclusion_list = barcode_inclusion_list_[0],
             barcode_conversion_dict = barcode_conversion_dict,
             disk_factor = align_disk_factor,
             memory_factor = align_memory_factor,
@@ -168,28 +163,9 @@ workflow wf_atac {
             prefix = prefix
     }
 
-    call task_qc_atac.qc_atac as qc_atac{
-        input:
-            fragments = align.atac_fragments,
-            fragments_index = align.atac_fragments_index,
-            barcode_summary = align.atac_barcode_summary,
-            tss = tss_bed,
-            gtf = gtf,
-            subpool = subpool,
-            barcode_conversion_dict = barcode_conversion_dict,
-            fragment_min_snapatac_cutoff = qc_fragment_min_cutoff,
-            chrom_sizes = chrom_sizes,
-            genome_name = genome_name,
-            prefix = prefix,
-            cpus = qc_cpus,
-            disk_factor = qc_disk_factor,
-            docker_image = qc_docker_image,
-            memory_factor = qc_memory_factor
-        }
-
     output {
         # Align
-        File atac_chromap_alignment_log = align.atac_alignment_log
+        File atac_fragments_alignment_stats = align.atac_alignment_log
         File atac_fragments = align.atac_fragments
         File atac_fragments_index = align.atac_fragments_index
         File atac_chromap_barcode_summary = align.atac_barcode_summary
@@ -197,15 +173,6 @@ workflow wf_atac {
         #File? atac_chromap_bam = generate_bam.atac_bam
         #File? atac_chromap_bam_index = generate_bam.atac_bam_index
         #File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
-
-        
-        # QC
-        File? atac_qc_chromap_barcode_metadata = qc_atac.atac_qc_chromap_barcode_metadata
-        File? atac_qc_snapatac2_barcode_metadata = qc_atac.atac_qc_snapatac2_barcode_metadata
-        File? atac_qc_tss_enrichment = qc_atac.atac_qc_tss_enrichment_plot
-        File? atac_qc_barcode_rank_plot = qc_atac.atac_qc_barcode_rank_plot
-        File? atac_qc_insertion_size_histogram = qc_atac.atac_qc_final_hist_png
-        File? atac_qc_tsse_fragments_plot = qc_atac.atac_qc_tsse_fragments_plot
 
         # Log
         File? atac_qc_metrics = log_atac.atac_statistics_csv

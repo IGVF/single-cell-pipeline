@@ -55,8 +55,9 @@ task kb_count {
 
     # Define the output names
     String index_dir = basename(kb_index_tar_gz, ".tar.gz")
-    String alignment_metrics_json = "${output_dir}/run_info.json"
-    String barcode_metrics_json = "${output_dir}/inspect.json"
+    String kb_run_info_json = "${output_dir}/run_info.json"
+    String library_qc_metrics_json = "${output_dir}/inspect.json"
+    String kb_info_json = "${output_dir}/kb_info.json"
 
     command <<<
     
@@ -91,10 +92,11 @@ task kb_count {
     >>>
 
     output {
-        File rna_kb_compressed_output_folder = "~{output_dir}.tar.gz"
+        File rna_kb_output_folder_tar_gz = "~{output_dir}.tar.gz"
         File rna_kb_h5ad = "~{output_dir}.h5ad"
-        File rna_kb_alignment_metrics_json = alignment_metrics_json
-        File rna_kb_barcode_metrics_json = barcode_metrics_json
+        File rna_kb_run_info_json = kb_run_info_json
+        File rna_kb_library_qc_metrics_json = library_qc_metrics_json
+        File rna_kb_parameters_json = kb_info_json
     }
 
     runtime {

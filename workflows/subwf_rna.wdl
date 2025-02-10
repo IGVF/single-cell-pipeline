@@ -3,8 +3,6 @@ version 1.0
 # Import the tasks called by the pipeline
 import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_kb_count.wdl" as task_kb
-import "../tasks/task_qc_rna.wdl" as task_qc_rna
-import "../tasks/task_log_rna.wdl" as task_log_rna
 
 workflow wf_rna {
     meta {
@@ -47,11 +45,6 @@ workflow wf_rna {
         Float? seqspec_extract_memory_factor
         String? seqspec_extract_docker_image
         
-        # RNA QC runtime parameters
-        Int? qc_rna_cpus
-        Float? qc_rna_disk_factor
-        Float? qc_rna_memory_factor
-        String? qc_rna_docker_image  
     }
     
     #Assuming this whitelist is applicable to all fastqs for kb task
@@ -98,36 +91,13 @@ workflow wf_rna {
             memory_factor = kb_memory_factor,
             docker_image = kb_docker_image
     }
-    
-    call task_qc_rna.qc_rna as qc_rna {
-        input:
-            counts_h5ad = kb.rna_kb_h5ad,
-            genome_name = genome_name,
-            kb_workflow = kb_mode,
-            prefix = prefix,
-            cpus = qc_rna_cpus,
-            disk_factor = qc_rna_disk_factor,
-            memory_factor = qc_rna_memory_factor,
-            docker_image = qc_rna_docker_image
-    }
-    
-    #need to add duplicate logs from qc_rna in this task
-    call task_log_rna.log_rna as log_rna {
-        input:
-            alignment_json = kb.rna_kb_alignment_metrics_json,
-            barcodes_json = kb.rna_kb_barcode_metrics_json,
-            genome_name = genome_name, 
-            prefix = prefix          
-    }
 
     output {
-        File rna_align_log = kb.rna_kb_alignment_metrics_json
-        File rna_kb_output = kb.rna_kb_compressed_output_folder
-        File rna_h5ad = kb.rna_kb_h5ad
-        File rna_log = log_rna.rna_logfile
-        File rna_barcode_metadata = qc_rna.rna_barcode_metadata
-        File? rna_umi_barcode_rank_plot = qc_rna.rna_umi_barcode_rank_plot
-        File? rna_gene_barcode_rank_plot = qc_rna.rna_gene_barcode_rank_plot
-        File? rna_gene_umi_scatter_plot = qc_rna.rna_gene_umi_scatter_plot
+        # RNA kb outputs
+        File rna_kb_h5ad = kb.rna_kb_h5ad
+        File rna_kb_output_folder_tar_gz = kb.rna_kb_output_folder_tar_gz
+        File rna_kb_run_info_json = kb.rna_kb_run_info_json
+        File rna_kb_library_qc_metrics_json = kb.rna_kb_library_qc_metrics_json
+        File rna_kb_parameters_json = kb.rna_kb_parameters_json
     }
 }
