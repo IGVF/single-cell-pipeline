@@ -19,7 +19,6 @@ workflow wf_atac {
         String chemistry
         String prefix = "igvf_output_atac"
         String? subpool = "none"
-        String genome_name
 
         File? barcode_conversion_dict # For 10X multiome
         File reference_fasta

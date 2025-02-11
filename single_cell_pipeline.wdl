@@ -20,8 +20,8 @@ workflow single_cell_pipeline {
         Array[File] seqspecs
 
         # ATAC-specific inputs
-        Array[File] read1_atac
-        Array[File] read2_atac
+        Array[File] atac_read1
+        Array[File] atac_read2
         Array[File] fastq_barcode
         Array[File] atac_barcode_inclusion_list
         File? chromap_genome_index_tar_gz
@@ -30,8 +30,8 @@ workflow single_cell_pipeline {
 
 
         # RNA-specific inputs
-        Array[File] read1_rna
-        Array[File] read2_rna
+        Array[File] rna_read1
+        Array[File] rna_read2
         Array[File] fastq_barcode_rna = []
         Array[File] rna_barcode_inclusion_list
         String kb_mode = "nac"
@@ -45,8 +45,8 @@ workflow single_cell_pipeline {
     File idx_tar_rna_ = if (kb_mode == "standard") then select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]]) else select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]])
     File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_genome_index_tar_gz"]])
 
-    Boolean process_atac = if length(read1_atac)>0 then true else false
-    Boolean process_rna = if length(read1_rna)>0 then true else false
+    Boolean process_atac = if length(atac_read1)>0 then true else false
+    Boolean process_rna = if length(rna_read1)>0 then true else false
       
     #seqspec
     if (length(seqspecs) > 0) {
@@ -70,9 +70,8 @@ workflow single_cell_pipeline {
     
     if(process_atac){
         #ATAC Read1
-        if ( (sub(read1_atac[0], "^gs:\/\/", "") == sub(read1_atac[0], "", "")) ){
-
-            scatter(file in read1_atac){
+        if ( (sub(atac_read1[0], "^gs:\/\/", "") == sub(atac_read1[0], "", "")) ){
+            scatter(file in atac_read1){
                 call check_inputs.check_inputs as check_read1_atac{
                     input:
                         path = file
@@ -81,8 +80,8 @@ workflow single_cell_pipeline {
         }
         
         #ATAC Read2
-        if ( (sub(read2_atac[0], "^gs:\/\/", "") == sub(read2_atac[0], "", "")) ){
-            scatter(file in read2_atac){
+        if ( (sub(atac_read2[0], "^gs:\/\/", "") == sub(atac_read2[0], "", "")) ){
+            scatter(file in atac_read2){
                 call check_inputs.check_inputs as check_read2_atac{
                     input:
                         path = file
@@ -101,14 +100,14 @@ workflow single_cell_pipeline {
         }
     }
     
-    Array[File] read1_atac_ = select_first([ check_read1_atac.output_file, read1_atac ])
-    Array[File] read2_atac_ = select_first([ check_read2_atac.output_file, read2_atac ])
+    Array[File] read1_atac_ = select_first([ check_read1_atac.output_file, atac_read1 ])
+    Array[File] read2_atac_ = select_first([ check_read2_atac.output_file, atac_read2 ])
     Array[File] fastq_barcode_ = select_first([ check_fastq_barcode.output_file, fastq_barcode ])
     
     if(process_rna){
         #RNA Read1
-        if ( (sub(read1_rna[0], "^gs:\/\/", "") == sub(read1_rna[0], "", "")) ){
-            scatter(file in read1_rna){
+        if ( (sub(rna_read1[0], "^gs:\/\/", "") == sub(rna_read1[0], "", "")) ){
+            scatter(file in rna_read1){
                 call check_inputs.check_inputs as check_read1_rna{
                     input:
                         path = file
@@ -117,8 +116,8 @@ workflow single_cell_pipeline {
         }
 
         #RNA Read2
-        if ( (sub(read2_rna[0], "^gs:\/\/", "") == sub(read2_rna[0], "", "")) ){
-            scatter(file in read2_rna){
+        if ( (sub(rna_read2[0], "^gs:\/\/", "") == sub(rna_read2[0], "", "")) ){
+            scatter(file in rna_read2){
                 call check_inputs.check_inputs as check_read2_rna{
                     input:
                         path = file
@@ -137,8 +136,8 @@ workflow single_cell_pipeline {
         }
     }
     
-    Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, read1_rna ])
-    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, read2_rna ])
+    Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
+    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read1 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
     
     
@@ -156,7 +155,7 @@ workflow single_cell_pipeline {
     }
     
     if ( process_rna ) {
-        if ( read1_rna[0] != "" ) {
+        if ( rna_read1[0] != "" ) {
             call subwf_rna.wf_rna as rna{
                 input:
                     read1 = read1_rna_,
@@ -176,7 +175,7 @@ workflow single_cell_pipeline {
     }
 
     if ( process_atac ) {
-        if ( read1_atac[0] != "" ) {
+        if ( atac_read1[0] != "" ) {
             call subwf_atac.wf_atac as atac{
                 input:
                     read1 = read1_atac_,
