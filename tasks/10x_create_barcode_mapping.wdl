@@ -59,7 +59,7 @@ task mapping_tenx_barcodes {
             paste -d '\t' <(cat atac_barcode_inclusion_list.txt) <(cat rna_barcode_inclusion_list.txt) >> ~{barcode_conversion_dict}
         fi
         # Fix for chromap.
-        awk -v OFS="\t" '{print $2,$1}' barcode_conversion_dict.csv > temp
+        awk -v OFS="\t" '{print $2,$1}' ~{barcode_conversion_dict} > temp
         mv temp ~{barcode_conversion_dict}
     >>>
 
