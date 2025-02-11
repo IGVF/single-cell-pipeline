@@ -12,10 +12,10 @@ workflow single_cell_pipeline {
 
     input {
         # Commond inputs
+        Boolean create_onlist_mapping = false
         String chemistry
         String prefix # Analysis set
         String? subpool = "none" # To address
-        String is_single_cell = "true"
         File genome_tsv
         Array[File] seqspecs
 
@@ -42,8 +42,8 @@ workflow single_cell_pipeline {
     Map[String, File] annotations = read_map(genome_tsv)
     String genome_name_ =  annotations["genome_name"]
     File genome_fasta_ = select_first([genome_fasta, annotations["fasta"]])
-    File idx_tar_rna_ = if (kb_mode == "standard") then select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]]) else select_first([kb_genome_index_tar_gz, annotations["kb_genome_index_tar_gz"]])
-    File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_genome_index_tar_gz"]])
+    File idx_tar_rna_ = select_first([kb_genome_index_tar_gz, annotations["kb_nac_idx_tar"]])
+    File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_idx_tar"]])
 
     Boolean process_atac = if length(atac_read1)>0 then true else false
     Boolean process_rna = if length(rna_read1)>0 then true else false
@@ -140,19 +140,15 @@ workflow single_cell_pipeline {
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read1 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
     
-    
-    if ( chemistry != "shareseq" && chemistry != "parse" && process_atac) {
-    
-        Array[File] fq_barcode_ = fastq_barcode_
         
-        if ( chemistry == "10x_multiome" && process_rna){
-            call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
-                input:
-                    atac_barcode_inclusion_list = atac_barcode_inclusion_list[0],
-                    rna_barcode_inclusion_list = rna_barcode_inclusion_list[0]
-            }
+    if ( create_onlist_mapping && process_atac && process_rna){
+        call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
+            input:
+                atac_barcode_inclusion_list = atac_barcode_inclusion_list[0],
+                rna_barcode_inclusion_list = rna_barcode_inclusion_list[0]
         }
     }
+    
     
     if ( process_rna ) {
         if ( rna_read1[0] != "" ) {
