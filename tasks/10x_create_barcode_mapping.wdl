@@ -33,7 +33,7 @@ task mapping_tenx_barcodes {
     # Determining disk type base on the size of disk.
     String disk_type = if disk_gb > 375 then "SSD" else "LOCAL"
 
-    String barcode_conversion_dict = "barcode_conversion_dict.csv"
+    String barcode_conversion_dict = "barcode_conversion_dict.tsv"
 
     command <<<
         set -e
