@@ -137,7 +137,7 @@ workflow single_cell_pipeline {
     }
     
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
-    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read1 ])
+    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
     
         
