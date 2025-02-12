@@ -2,83 +2,67 @@ version 1.0
 
 # Import the sub-workflow for preprocessing the fastqs.
 import "tasks/task_check_inputs.wdl" as check_inputs
-import "tasks/task_sample_fastqs.wdl" as sample_fastqs
 import "workflows/subwf_atac.wdl" as subwf_atac
 import "workflows/subwf_rna.wdl" as subwf_rna
 import "tasks/10x_create_barcode_mapping.wdl" as tenx_barcode_map
-import "tasks/task_joint_qc.wdl" as joint_qc
-import "tasks/task_html_report.wdl" as html_report
 
 # WDL workflow for SHARE-seq
 
-workflow singe_cell_pipeline {
+workflow single_cell_pipeline {
 
     input {
-        # Common inputs
-
-        Boolean sample_flag = false
-        File? gtf
+        # Commond inputs
+        Boolean create_onlist_mapping = false
         String chemistry
-        String prefix
-        String? subpool = "none"
-        String pipeline_modality = "full" # "full": run everything; "count_only": stops after producing fragment file and count matrix; "no_align": correct and trim raw fastqs.
-        File? genome_fasta
-        
-        #can be removed
-        File whitelists_tsv = 'gs://broad-buenrostro-pipeline-genome-annotations/whitelists/whitelists.tsv'
-        
-        Array[File] whitelist_atac
-        Array[File] whitelist_rna
-        
+        String prefix # Analysis set
+        String? subpool = "none" # To address
+        File genome_tsv
         Array[File] seqspecs
 
         # ATAC-specific inputs
-        Array[File] read1_atac
-        Array[File] read2_atac
+        Array[File] atac_read1
+        Array[File] atac_read2
         Array[File] fastq_barcode
-        Boolean count_only = false
-        File? chrom_sizes
-        File? atac_genome_index_tar
-        File? tss_bed
-
-        # ATAC - Align
-
-        # ATAC - Filter
-        ## Biological
+        Array[File] atac_barcode_inclusion_list
+        File? chromap_genome_index_tar_gz
+        File? genome_fasta
         String? atac_read_format
-        Int? atac_filter_minimum_fragments_cutoff = 1
+
 
         # RNA-specific inputs
-        Array[File] read1_rna
-        Array[File] read2_rna
+        Array[File] rna_read1
+        Array[File] rna_read2
+        Array[File] fastq_barcode_rna = []
+        Array[File] rna_barcode_inclusion_list
+        String kb_mode = "nac"
         String? rna_read_format
-        String? kb_workflow = "nac"
-        File? kb_index_tar_gz
-
-        
-        File genome_tsv
-        String? genome_name
+        File? kb_genome_index_tar_gz
     }
 
     Map[String, File] annotations = read_map(genome_tsv)
-    String genome_name_ =  select_first([genome_name, annotations["genome_name"]])
-    File chrom_sizes_ = select_first([chrom_sizes, annotations["chrsz"]])
+    String genome_name_ =  annotations["genome_name"]
     File genome_fasta_ = select_first([genome_fasta, annotations["fasta"]])
-    File tss_bed_ = select_first([tss_bed, annotations["tss"]])
-    File gtf_ = select_first([gtf, annotations["genesgtf"]])
-    File idx_tar_rna_ = if (kb_workflow == "standard") then select_first([kb_index_tar_gz, annotations["kb_standard_idx_tar"]]) else select_first([kb_index_tar_gz, annotations["kb_nac_idx_tar"]])
-    File idx_tar_atac_ = select_first([kb_index_tar_gz, annotations["chromap_idx_tar"]])
+    File idx_tar_rna_ = select_first([kb_genome_index_tar_gz, annotations["kb_nac_idx_tar"]])
+    File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_idx_tar"]])
 
-    Boolean process_atac = if length(read1_atac)>0 then true else false
-    Boolean process_rna = if length(read1_rna)>0 then true else false
+    Boolean process_atac = if length(atac_read1)>0 then true else false
+    Boolean process_rna = if length(rna_read1)>0 then true else false
       
     #seqspec
-    if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
-        scatter(file in seqspecs){
-            call check_inputs.check_inputs as check_seqspec{
-                input:
-                    path = file
+    if (length(seqspecs) > 0) {
+        if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
+            scatter(file in seqspecs){
+                call check_inputs.check_inputs as check_seqspec{
+                    input:
+                        path = file
+                }
             }
+        }
+    }
+    if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
+        call check_inputs.check_inputs as check_genome_fasta{
+            input:
+                path = genome_fasta_
         }
     }
     
@@ -86,9 +70,8 @@ workflow singe_cell_pipeline {
     
     if(process_atac){
         #ATAC Read1
-        if ( (sub(read1_atac[0], "^gs:\/\/", "") == sub(read1_atac[0], "", "")) ){
-
-            scatter(file in read1_atac){
+        if ( (sub(atac_read1[0], "^gs:\/\/", "") == sub(atac_read1[0], "", "")) ){
+            scatter(file in atac_read1){
                 call check_inputs.check_inputs as check_read1_atac{
                     input:
                         path = file
@@ -97,8 +80,8 @@ workflow singe_cell_pipeline {
         }
         
         #ATAC Read2
-        if ( (sub(read2_atac[0], "^gs:\/\/", "") == sub(read2_atac[0], "", "")) ){
-            scatter(file in read2_atac){
+        if ( (sub(atac_read2[0], "^gs:\/\/", "") == sub(atac_read2[0], "", "")) ){
+            scatter(file in atac_read2){
                 call check_inputs.check_inputs as check_read2_atac{
                     input:
                         path = file
@@ -117,14 +100,14 @@ workflow singe_cell_pipeline {
         }
     }
     
-    Array[File] read1_atac_ = select_first([ check_read1_atac.output_file, read1_atac ])
-    Array[File] read2_atac_ = select_first([ check_read2_atac.output_file, read2_atac ])
+    Array[File] read1_atac_ = select_first([ check_read1_atac.output_file, atac_read1 ])
+    Array[File] read2_atac_ = select_first([ check_read2_atac.output_file, atac_read2 ])
     Array[File] fastq_barcode_ = select_first([ check_fastq_barcode.output_file, fastq_barcode ])
     
     if(process_rna){
         #RNA Read1
-        if ( (sub(read1_rna[0], "^gs:\/\/", "") == sub(read1_rna[0], "", "")) ){
-            scatter(file in read1_rna){
+        if ( (sub(rna_read1[0], "^gs:\/\/", "") == sub(rna_read1[0], "", "")) ){
+            scatter(file in rna_read1){
                 call check_inputs.check_inputs as check_read1_rna{
                     input:
                         path = file
@@ -133,8 +116,8 @@ workflow singe_cell_pipeline {
         }
 
         #RNA Read2
-        if ( (sub(read2_rna[0], "^gs:\/\/", "") == sub(read2_rna[0], "", "")) ){
-            scatter(file in read2_rna){
+        if ( (sub(rna_read2[0], "^gs:\/\/", "") == sub(rna_read2[0], "", "")) ){
+            scatter(file in rna_read2){
                 call check_inputs.check_inputs as check_read2_rna{
                     input:
                         path = file
@@ -142,71 +125,42 @@ workflow singe_cell_pipeline {
             }
         }
     }
-    
-    Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, read1_rna ])
-    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, read2_rna ])
-    
-    #sample mode - use first million records in fastq
-    if (sample_flag){   
-        scatter(file in read1_atac_){
-                call sample_fastqs.sample_fastqs as sample_read1_atac{
+    if (length(fastq_barcode_rna) > 0){
+        if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
+            scatter(file in fastq_barcode_rna){
+                call check_inputs.check_inputs as check_fastq_barcode_rna{
                     input:
                         path = file
                 }
-            }      
-        
-        scatter(file in read2_atac_){
-                call sample_fastqs.sample_fastqs as sample_read2_atac{
-                    input:
-                        path = file
-                }
-            }      
-        
-        scatter(file in fastq_barcode_){
-                call sample_fastqs.sample_fastqs as sample_barcode{
-                    input:
-                        path = file
-                }
-            }      
-    
-        scatter(file in read1_rna_){
-                call sample_fastqs.sample_fastqs as sample_read1_rna{
-                    input:
-                        path = file
-                }
-            }      
-        
-        scatter(file in read2_rna_){
-                call sample_fastqs.sample_fastqs as sample_read2_rna{
-                    input:
-                        path = file
-                }
-            }      
-    }
-    
-    if ( chemistry != "shareseq" && chemistry != "parse" && process_atac) {
-    
-        Array[File] fq_barcode_ = select_first([ sample_barcode.output_file, fastq_barcode_ ])
-        
-        if ( chemistry == "10x_multiome" && process_rna){
-            call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
-                input:
-                    whitelist_atac = whitelist_atac[0],
-                    whitelist_rna = whitelist_rna[0]
             }
         }
     }
     
+    Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
+    Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
+    Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
+    
+        
+    if ( create_onlist_mapping && process_atac && process_rna){
+        call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
+            input:
+                atac_barcode_inclusion_list = atac_barcode_inclusion_list[0],
+                rna_barcode_inclusion_list = rna_barcode_inclusion_list[0]
+        }
+    }
+    
+    
     if ( process_rna ) {
-        if ( read1_rna[0] != "" ) {
+        if ( rna_read1[0] != "" ) {
             call subwf_rna.wf_rna as rna{
                 input:
-                    read1 = select_first([sample_read1_rna.output_file,read1_rna_]),
-                    read2 = select_first([sample_read2_rna.output_file,read2_rna_]),
+                    read1 = read1_rna_,
+                    read2 = read2_rna_,
+                    read_barcode = fastq_barcode_rna_,
                     seqspecs = seqspecs_,
                     chemistry = chemistry,
-                    barcode_whitelists = whitelist_rna,
-                    kb_workflow = kb_workflow,
+                    barcode_inclusion_list = rna_barcode_inclusion_list,
+                    kb_mode = kb_mode,
                     kb_index_tar_gz = idx_tar_rna_,
                     prefix = prefix,
                     subpool = subpool,
@@ -217,85 +171,46 @@ workflow singe_cell_pipeline {
     }
 
     if ( process_atac ) {
-        if ( read1_atac[0] != "" ) {
+        if ( atac_read1[0] != "" ) {
             call subwf_atac.wf_atac as atac{
                 input:
-                    read1 = select_first([sample_read1_atac.output_file,read1_atac_]),
-                    read2 = select_first([sample_read2_atac.output_file,read2_atac_]),
+                    read1 = read1_atac_,
+                    read2 = read2_atac_,
                     seqspecs = seqspecs_,
-                    fastq_barcode = select_first([ sample_barcode.output_file, fastq_barcode_ ]),
+                    fastq_barcode = fastq_barcode_,
                     chemistry = chemistry,
-                    reference_fasta = genome_fasta_,
+                    reference_fasta = select_first([check_genome_fasta.output_file, genome_fasta_]),
                     subpool = subpool,
-                    gtf = gtf_,
-                    barcode_whitelists = whitelist_atac,
-                    chrom_sizes = chrom_sizes_,
+                    barcode_inclusion_list = atac_barcode_inclusion_list,
                     reference_index_tar_gz = idx_tar_atac_,
-                    tss_bed = tss_bed_,
                     prefix = prefix,
                     read_format = atac_read_format,
-                    genome_name = genome_name_,
                     barcode_conversion_dict = barcode_mapping.tenx_barcode_conversion_dict,
-                    pipeline_modality = pipeline_modality
             }
-        }
-    }
-
-    if ( process_atac && process_rna ) {
-        if ( read1_atac[0] != "" && read1_rna[0] != "" ) {            
-            if ( pipeline_modality != "no_align" ) {
-                call joint_qc.joint_qc_plotting as joint_qc {
-                    input:
-                        atac_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata,
-                        rna_barcode_metadata = rna.rna_barcode_metadata,
-                        prefix = prefix,
-                        genome_name = genome_name_
-                }
-            }
-        }
-    }
-
-    if ( pipeline_modality != "no_align" ) {
-        call html_report.html_report as html_report {
-            input:
-                prefix = prefix,
-                atac_metrics = atac.atac_qc_metrics,
-                rna_metrics = rna.rna_log,
-                ## JPEG files to be encoded and appended to html
-                # RNA plots
-                image_files = [joint_qc.joint_qc_plot, joint_qc.joint_density_plot,
-                            rna.rna_umi_barcode_rank_plot, rna.rna_gene_barcode_rank_plot, rna.rna_gene_umi_scatter_plot,
-                            atac.atac_qc_barcode_rank_plot, atac.atac_qc_insertion_size_histogram, atac.atac_qc_tss_enrichment],
-
-                ## Links to files and logs to append to end of html
-                log_files = [rna.rna_align_log, rna.rna_log, atac.atac_alignment_log]
-
         }
     }
 
     output{
         # RNA outputs
-        File? rna_kb_output = rna.rna_kb_output
-        File? rna_mtx_tar = rna.rna_mtxs_tar
-        File? rna_mtxs_h5ad = rna.rna_mtxs_h5ad
-        File? rna_aggregated_counts_h5ad = rna.rna_aggregated_counts_h5ad
-        File? rna_log = rna.rna_log
-        File? rna_barcode_metadata  = rna.rna_barcode_metadata
-        
+        File? rna_kb_h5ad = rna.rna_kb_h5ad
+        File? rna_kb_output_folder_tar_gz = rna.rna_kb_output_folder_tar_gz
+        File? rna_kb_run_info_json = rna.rna_kb_run_info_json
+        File? rna_kb_library_qc_metrics_json = rna.rna_kb_library_qc_metrics_json
+        File? rna_kb_parameters_json = rna.rna_kb_parameters_json
+    
+
         # ATAC ouputs
-        File? atac_bam = atac.atac_chromap_bam
-        File? atac_bam_log = atac.atac_chromap_bam_alignement_stats
+        #File? atac_bam = atac.atac_chromap_bam
+        #File? atac_bam_index = atac.atac_chromap_bam_index
+        #File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
-        File? atac_chromap_barcode_metadata = atac.atac_qc_chromap_barcode_metadata
-        File? atac_snapatac2_barcode_metadata = atac.atac_qc_snapatac2_barcode_metadata
+        File? atac_fragments_log = atac.atac_fragments_alignment_stats
+        File? atac_qc_metrics = atac.atac_qc_metrics
+        File? atac_fragments_alignment_stats = atac.atac_fragments_alignment_stats
+        File? atac_chromap_barcode_summary = atac.atac_chromap_barcode_summary
 
-        # Joint outputs
-        File? joint_barcode_metadata = joint_qc.joint_barcode_metadata
 
-        # Report
-        File? html_summary = html_report.html_report_file
-        File? csv_summary = html_report.csv_summary_file
     }
 
 }

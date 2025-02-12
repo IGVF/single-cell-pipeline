@@ -86,6 +86,25 @@ The following input files are required to run the pipeline:
 | `csv_summary` | .csv | [Filtered] CSV summary report |
 | `html_summary` | .html | [Filtered] HTML summary report |
 
+## QC metrics
+| Column Name     | Description                          |
+|-----------------|--------------------------------------|
+| barcode         | Unique identifier for the sample     |
+| total           | Total number of reads                |
+| duplicate       | Number of duplicate reads            |
+| unmapped        | Number of unmapped reads             |
+| lowmapq         | Number of low mapping quality reads  |
+| unique          | Number of unique reads               |
+| pct_dup         | Percentage of duplicate reads        |
+| pct_unmapped    | Percentage of unmapped reads         |
+| n_fragment      | Number of fragments                  |
+| frac_dup        | Fraction of duplicate reads          |
+| frac_mito       | Fraction of mitochondrial reads      |
+| tsse            | Transcription start site enrichment  |
+| promoter_frac   | Fraction of reads in promoter regions|
+| tss_frac        | Fraction of reads in TSS regions     |
+| total_counts    | Total counts                         |
+| genes           | Number of genes                      |
 
 ## Contributing
 

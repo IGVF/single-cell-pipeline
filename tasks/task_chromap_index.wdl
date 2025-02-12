@@ -11,21 +11,21 @@ task generate_chromap_index {
     }
 
     input {
-        File reference_fasta
-        String genome_name # GRCh38, mm10
+        File genome_fasta
+        String output_dir
 
         Int? cpus = 1
         Float? disk_factor = 1
         #TODO: With this setting it usually caps at 75%.
         Float? memory_factor = 0.15
         #TODO:We need to setup a docker registry.
-        String? docker_image = "docker.io/polumechanos/task_chromap"
+        String? docker_image = "polumechanos/igvf-chromap:dev"
     }
 
     # Determine the size of the input
-    Float input_file_size_gb = size(reference_fasta, "G")
+    Float input_file_size_gb = size(genome_fasta, "G")
     # Determining memory size base on the size of the input files.
-    Float mem_gb = 32.0 + size(reference_fasta, "G") + memory_factor * input_file_size_gb
+    Float mem_gb = 32.0 + size(genome_fasta, "G") + memory_factor * input_file_size_gb
 
     # Determining disk size base on the size of the input files.
     Int disk_gb = round(40.0 + disk_factor * input_file_size_gb)
@@ -38,19 +38,15 @@ task generate_chromap_index {
     command <<<
         set -e
 
-        bash $(which monitor_script.sh) 1>&2 &
-
         # Create index
-        mkdir chromap_index
+        mkdir ~{output_dir}
         echo '------ indexing ------' 1>&2
-        time chromap -i -r <(zcat ~{reference_fasta}) -o chromap_index/index
-
-        tar -vzcf ~{genome_name}_chromap_index.tar.gz chromap_index
+        run_chromap index --genome_fasta ~{genome_fasta} --output_dir ~{output_dir}
 
     >>>
 
     output {
-        File atac_chromap_index = "~{genome_name}_chromap_index.tar.gz"
+        File atac_chromap_index = "~{output_dir}.tar.gz"
     }
 
 
@@ -63,6 +59,16 @@ task generate_chromap_index {
     }
 
     parameter_meta {
+        output_dir: {
+                description: 'Output directory.',
+                help: 'Output directory for the index.',
+                default: "chromap_index"
+            }
+        genome_fasta: {
+                description: 'Reference FASTA file.',
+                help: 'Reference FASTA file for the alignment step.',
+                example: ["hg38.fa"]
+            }
         cpus: {
                 description: 'Number of cpus.',
                 help: 'Set the number of cpus used by bowtie2',
@@ -78,11 +84,7 @@ task generate_chromap_index {
                 help: 'This factor will be multiplied to the size of FASTQs to determine required memory of instance (GCP/AWS) or job (HPCs).',
                 default: 0.15
             }
-        genome_name: {
-                description: 'Reference name.',
-                help: 'The name of the reference genome used by the aligner. This is appended to the output file name.',
-                examples: ['GRCh38', 'mm10']
-            }
+
         docker_image: {
                 description: 'Docker image.',
                 help: 'Docker image for the alignment step.',

@@ -17,35 +17,26 @@ task kb_count {
                 
         Array[File] read1_fastqs #These filenames must EXACTLY match the ones specified in seqspec
         Array[File] read2_fastqs #These filenames must EXACTLY match the ones specified in seqspec
-        
-        String modality = "rna"
-        
-        String index_string
-        
-        #File genome_fasta
-        #File genome_gtf
-        
+        String kb_mode # standard or nac
+        String output_dir
+        String strand
+        String read_format
         File kb_index_tar_gz
-        File barcode_whitelist 
+        File barcode_inclusion_list 
+        
+        Array[File]? read_barcode_fastqs
+        String? subpool
         File? replacement_list
-        
-        String? kb_workflow
-        String? subpool = "none"
-        String genome_name # GRCh38, mm10
-        String prefix = "test-sample"
-        String chemistry
-        String strand = "unstranded"
-        String matrix_sum = "total"
-        
+
         Int threads = 4
         
         #Will these be used? Need to run tests to optimize
-        Int? cpus = 4
-        Float? disk_factor = 1
-        Float? memory_factor = 0.15
+        Int cpus = 4
+        Float disk_factor = 1.0
+        Float memory_factor = 0.15
         
         #TODO:We need to setup a docker registry.
-        String? docker_image = "swekhande/igvf:task_kb"
+        String docker_image = "polumechanos/igvf-kb:dev"
         
     }
     
@@ -63,11 +54,10 @@ task kb_count {
     String disk_type = if disk_gb > 375 then "SSD" else "LOCAL"
 
     # Define the output names
-    String directory = "${prefix}.rna.align.kb.${genome_name}"
     String index_dir = basename(kb_index_tar_gz, ".tar.gz")
-    String mtx_tar = "${prefix}.rna.align.kb.${genome_name}.mtx.tar.gz"
-    String alignment_json = "${prefix}.rna.align.kb.${genome_name}/run_info.json"
-    String barcode_matrics_json = "${prefix}.rna.align.kb.${genome_name}/inspect.json"
+    String kb_run_info_json = "${output_dir}/run_info.json"
+    String library_qc_metrics_json = "${output_dir}/inspect.json"
+    String kb_info_json = "${output_dir}/kb_info.json"
 
     command <<<
     
@@ -76,101 +66,42 @@ task kb_count {
         bash $(which monitor_script.sh) 1>&2 &
         
         #set up fastq order as l1r1, l1r2, l2r1, l2r2, etc.
-        interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
+        interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read_barcode_fastqs}) <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
            
-        mkdir ~{directory}
-        tar -xzvf ~{kb_index_tar_gz}
+        mkdir ~{output_dir}
+        tar xvzf ~{kb_index_tar_gz} --no-same-owner -C ./
         
-        if [[ '~{barcode_whitelist}' == *.gz ]]; then
+        if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2
-            gunzip -c ~{barcode_whitelist} > barcode_inclusion_list.txt
+            gunzip -c ~{barcode_inclusion_list} > barcode_inclusion_list.txt
         else
             echo '------ No decompression needed for the RNA barcode inclusion list ------' 1>&2
-            cat ~{barcode_whitelist} > barcode_inclusion_list.txt
-        fi
-        
-        #build index based on kb_workflow
-        if [[ '~{kb_workflow}' == "standard" ]]; then                        
-            #kb count standard
-            kb count \
-                -i ~{index_dir}/index.idx \
-                -g ~{index_dir}/t2g.txt \
-                -x ~{index_string} \
-                -w barcode_inclusion_list.txt \
-                --strand ~{strand} \
-                ~{if defined(replacement_list) then "-r ~{replacement_list}" else ""} \
-                -o ~{directory} \
-                --h5ad \
-                --gene-names \
-                -t ~{threads} \
-                $interleaved_files_string 
-        
-        else
-                        
-            #kb count nac    
-            kb count \
-                --workflow=nac \
-                -i ~{index_dir}/index.idx \
-                -g ~{index_dir}/t2g.txt \
-                -c1 ~{index_dir}/cdna.txt \
-                -c2 ~{index_dir}/nascent.txt \
-                --sum=~{matrix_sum} \
-                -x ~{index_string} \
-                -w barcode_inclusion_list.txt \
-                --strand ~{strand} \
-                ~{if defined(replacement_list) then "-r ~{replacement_list}" else ""} \
-                -o ~{directory} \
-                --h5ad \
-                --gene-names \
-                -t ~{threads} \
-                $interleaved_files_string 
-                
+            cat ~{barcode_inclusion_list} > barcode_inclusion_list.txt
         fi
 
-        #if subpool is defined add subpool suffix
-        if [ '~{subpool}' != "none" ]; then
-        
-            #add subpool suffix in .h5ad file
-            python3 $(which modify_barcode_h5.py) ~{directory}/counts_unfiltered/adata.h5ad ~{subpool}
-
-            #add subpool suffix in barcodes.txt file
-            sed -i 's/$/_~{subpool}/' ~{directory}/counts_unfiltered/cells_x_genes.barcodes.txt
-        
-        fi
-        
-        if [[ '~{kb_workflow}' == "nac" ]]; then  
-        
-            #python script to create aggregated counts h5ad    
-            
-            python3 $(which write_h5ad_from_mtx.py) ~{directory}/counts_unfiltered/cells_x_genes.~{matrix_sum}.mtx \
-            ~{directory}/counts_unfiltered/cells_x_genes.barcodes.txt \
-            ~{directory}/counts_unfiltered/cells_x_genes.genes.names.txt
-            
-            mv output.h5ad ~{prefix}.rna.align.kb.~{genome_name}.cells_x_genes.~{matrix_sum}.h5ad
-        
-        fi
-        
-        tar -kzcvf ~{directory}.tar.gz ~{directory}
-        
-        tar -czvf ~{mtx_tar}  --exclude='*.h5ad' -C ~{directory}/counts_unfiltered/ .
-
-        mv ~{directory}/counts_unfiltered/adata.h5ad ~{prefix}.rna.align.kb.~{genome_name}.count_matrix.h5ad
-
+        run_kallisto quantify ~{kb_mode} \
+            --index_dir ~{index_dir} \
+            --read_format ~{read_format} \
+            --output_dir ~{output_dir} \
+            --strand ~{strand} \
+            ~{"--subpool " + subpool} \
+            ~{"--replacement_list " + replacement_list} \
+            --threads ~{threads} \
+            --barcode_onlist barcode_inclusion_list.txt \
+            $interleaved_files_string
     >>>
 
     output {
-        File rna_output = "~{directory}.tar.gz"
-        File rna_alignment_json = alignment_json
-        File rna_barcode_matrics_json = barcode_matrics_json
-        File rna_mtxs_tar = mtx_tar
-        File rna_mtxs_h5ad = "~{prefix}.rna.align.kb.~{genome_name}.count_matrix.h5ad"
-        File? rna_aggregated_counts_h5ad = "~{prefix}.rna.align.kb.~{genome_name}.cells_x_genes.~{matrix_sum}.h5ad"
+        File rna_kb_output_folder_tar_gz = "~{output_dir}.tar.gz"
+        File rna_kb_h5ad = "~{output_dir}.h5ad"
+        File rna_kb_run_info_json = kb_run_info_json
+        File rna_kb_library_qc_metrics_json = library_qc_metrics_json
+        File rna_kb_parameters_json = kb_info_json
     }
 
     runtime {
         cpu: cpus
         docker: "${docker_image}"
-        singularity: "docker://${docker_image}"
         disks: "local-disk ${disk_gb} ${disk_type}"
         memory: "${mem_gb} GB"
     }
@@ -188,11 +119,45 @@ task kb_count {
             help: 'List of raw read2 fastqs that will be corrected and processed using kb',
             example: ['l0.r2.fq.gz', 'l1.r2.fq.gz']
         }
-        
-        modality: {
-            description: 'Modality',
-            help: 'Fixed to RNA',
-            example: 'rna'
+
+        kb_mode: {
+            description: 'kb mode.',
+            help: 'kb mode to use for the alignment. Can be standard or nac',
+            example: ['standard', 'nac']
+        }
+
+        output_dir: {
+            description: 'Output directory.',
+            help: 'Directory where the output files will be stored',
+            example: ['output']
+        }
+
+        strand: {
+            description: 'Strand.',
+            help: 'Strand to use for the alignment. Can be forward, reverse, or both',
+            example: ['forward', 'reverse', 'unstranded']
+        }
+
+        read_format: {
+            description: 'Read format.',
+            help: 'Read format to use for the alignment. Follows the kb documentation'
+        }
+
+        kb_index_tar_gz: {
+            description: 'kb index tar gz.',
+            help: 'Tar gz file containing the kb index',
+            example: ['index.tar.gz']
+        }
+
+        barcode_inclusion_list: {
+            description: 'Barcode inclusion list.',
+            help: 'File containing the barcodes to include in the analysis',
+            example: ['barcodes.txt']
+        }
+
+        read_barcode_fastqs: {
+            description: 'List of input read barcode fastqs.',
+            help: 'List of raw read barcode fastqs that will be corrected and processed using kb'
         }
         
         cpus: {
@@ -210,18 +175,6 @@ task kb_count {
             description: 'Multiplication factor to determine memory required for task align.',
             help: 'This factor will be multiplied to the size of FASTQs to determine required memory of instance (GCP/AWS) or job (HPCs).',
             default: 0.15
-        }
-            
-        genome_name: {
-            description: 'Reference name.',
-            help: 'The name of the reference genome used by the aligner. This is appended to the output file name.',
-            examples: ['GRCh38', 'mm10']
-        }
-            
-        prefix: {
-            description: 'Prefix for output files.',
-            help: 'Prefix that will be used to name the output files',
-            examples: 'my-experiment'
         }
             
         docker_image: {

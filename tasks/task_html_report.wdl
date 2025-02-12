@@ -30,7 +30,6 @@ task html_report {
 
         ## Outputs from tasks
         File? joint_qc_vals
-        File? atac_archr_vals
         File? atac_tss_vals
 
         String docker_image = 'polumechanos/html_report:igvf'
