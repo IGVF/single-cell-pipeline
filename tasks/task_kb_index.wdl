@@ -7,9 +7,9 @@ version 1.0
 task kb_index {
 
     meta {
-        version: 'v0.1'
-        author: 'Siddarth Wekhande (swekhand@broadinstitute.org) at Broad Institute of MIT and Harvard'
-        description: 'create reference using kb'
+        version: 'v1'
+        author: 'Eugenio Mattei at Broad Institute of MIT and Harvard'
+        description: 'Create genome index using kallisto-bustools'
     }
     
     input {
@@ -26,7 +26,7 @@ task kb_index {
         Float? memory_factor = 1
         
         #TODO:We need to setup a docker registry.
-        String? docker_image = "polumechanos/igvf-kb:dev"
+        String? docker_image = "docker.io/igvf/kallisto-bustools:dev"
         
     }
     
@@ -62,6 +62,9 @@ task kb_index {
 
     output {
         File rna_index = "~{output_folder}.tar.gz"
+        File? cdna_fasta = "~{output_folder}/cdna.fasta"
+        File? nascent_fasta = "~{output_folder}/nascent.fasta"
+        File? transcriptome_fasta = "~{output_folder}/transcriptome.fasta"
     }
 
     runtime {

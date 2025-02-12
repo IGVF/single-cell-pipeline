@@ -39,5 +39,8 @@ workflow wf_rna {
 
     output {
         File rna_index = kb.rna_index
+        File? rna_cdna_fasta = kb.cdna_fasta
+        File? rna_nascent_fasta = kb.nascent_fasta
+        File? rna_transcriptome_fasta = kb.transcriptome_fasta
     }
 }
