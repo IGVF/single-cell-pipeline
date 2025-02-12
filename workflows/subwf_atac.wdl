@@ -41,8 +41,6 @@ workflow wf_atac {
         Float? align_bam_disk_factor = 8.0
         Float? align_bam_memory_factor = 0.15
 
-        Int? qc_fragment_min_cutoff
-
         # Merge-specific inputs
         # Runtime parameters
         Int? merge_cpus
@@ -50,27 +48,11 @@ workflow wf_atac {
         Float? merge_memory_factor = 0.15
         String? merge_docker_image
 
-        # Filter-specific inputs
-        Int? filter_minimum_fragments_cutoff
-        Int? filter_shift_plus = 4
-        Int? filter_shift_minus = -4
-        # Runtime parameters
-        Int? filter_cpus = 16
-        Float? filter_disk_factor = 8.0
-        Float? filter_memory_factor = 0.15
-        String? filter_docker_image
-
         # QC-specific inputs
         File? raw_bam
         File? raw_bam_index
         File? filtered_bam
         File? filtered_bam_index
-        Int? qc_fragment_cutoff
-        # Runtime parameters
-        Int? qc_cpus = 16
-        Float? qc_disk_factor = 8.0
-        Float? qc_memory_factor = 0.15
-        String? qc_docker_image
 
         # RNA seqspec extract runtime parameters
         Int? seqspec_extract_cpus
@@ -168,12 +150,10 @@ workflow wf_atac {
         File atac_fragments = align.atac_fragments
         File atac_fragments_index = align.atac_fragments_index
         File atac_chromap_barcode_summary = align.atac_barcode_summary
+        File? atac_qc_metrics = log_atac.atac_statistics_csv
 
         #File? atac_chromap_bam = generate_bam.atac_bam
         #File? atac_chromap_bam_index = generate_bam.atac_bam_index
         #File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
-
-        # Log
-        File? atac_qc_metrics = log_atac.atac_statistics_csv
     }
 }
