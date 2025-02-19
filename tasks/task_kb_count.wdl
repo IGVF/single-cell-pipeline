@@ -7,9 +7,9 @@ version 1.0
 task kb_count {
 
     meta {
-        version: 'v0.1'
-        author: 'Siddarth Wekhande (swekhand@broadinstitute.org) at Broad Institute of MIT and Harvard'
-        description: 'align RNA using kb'
+        version: 'v1'
+        author: 'Eugenio Mattei at Broad Institute of MIT and Harvard'
+        description: 'Align RNA using kallisto-bustool'
     }
     
     input {
@@ -36,7 +36,7 @@ task kb_count {
         Float memory_factor = 0.15
         
         #TODO:We need to setup a docker registry.
-        String docker_image = "polumechanos/igvf-kb:dev"
+        String docker_image = "docker.io/igvf/kallisto-bustools:dev"
         
     }
     
