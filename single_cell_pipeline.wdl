@@ -17,7 +17,7 @@ workflow single_cell_pipeline {
         String prefix # Analysis set
         String? subpool = "none" # To address
         File genome_tsv
-        Array[File] seqspecs
+        Array[File] seqspecs = []
 
         # ATAC-specific inputs
         Array[File] atac_read1
@@ -40,7 +40,6 @@ workflow single_cell_pipeline {
     }
 
     Map[String, File] annotations = read_map(genome_tsv)
-    String genome_name_ =  annotations["genome_name"]
     File genome_fasta_ = select_first([genome_fasta, annotations["fasta"]])
     File idx_tar_rna_ = select_first([kb_genome_index_tar_gz, annotations["kb_nac_idx_tar"]])
     File idx_tar_atac_ = select_first([chromap_genome_index_tar_gz, annotations["chromap_idx_tar"]])
@@ -164,7 +163,6 @@ workflow single_cell_pipeline {
                     kb_index_tar_gz = idx_tar_rna_,
                     prefix = prefix,
                     subpool = subpool,
-                    genome_name = genome_name_,
                     read_format = rna_read_format
             }
         }

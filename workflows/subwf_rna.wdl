@@ -27,7 +27,6 @@ workflow wf_rna {
         Array[File] barcode_inclusion_list
         
         String? subpool
-        String genome_name # GRCh38, mm10
         String prefix
         
         # RNA kb runtime parameters
