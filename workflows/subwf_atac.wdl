@@ -150,7 +150,7 @@ workflow wf_atac {
         File atac_fragments = align.atac_fragments
         File atac_fragments_index = align.atac_fragments_index
         File atac_chromap_barcode_summary = align.atac_barcode_summary
-        File? atac_qc_metrics = log_atac.atac_statistics_csv
+        File? atac_qc_metrics = log_atac.atac_statistics_json
 
         #File? atac_chromap_bam = generate_bam.atac_bam
         #File? atac_chromap_bam_index = generate_bam.atac_bam_index
