@@ -25,7 +25,7 @@ task log_atac {
         grep "Number of" ~{alignment_log} | grep -v threads| tr -d '.' | sed 's/ /_/g' | sed 's/:_/,/g'> qc_metrics.csv
         grep "#" ~{alignment_log}  | sed 's/, /\n/g' | tr -d '# ' | sed 's/:/,/g' | tr -d '.' >> qc_metrics.csv
         # Compute the percentage of duplicates from the barcode log file.
-        awk -v FS="," 'NR>1{unique+= $2; dups+=$3}END{printf "percentage_duplicates,%5.1f", 100*dups/(unique+dups)}' ~{barcode_log} >> qc_metrics.csv
+        awk -v FS="," 'NR>1{total+=$2; dups+=$3; unmapped+=$4; lowmapq+=$5}END{printf "percentage_duplicates,%5.1f", 100*dups/(total-unmapped-lowmapq)}' ~{barcode_log} >> qc_metrics.csv
         # Convert the csv to JSON
         python -c "import csv, json; f = open('qc_metrics.csv', 'r'); reader = csv.reader(f); data = {row[0]: int(row[1].strip()) if row[1].isdigit() else float(row[1].strip()) for row in reader}; print(json.dumps(data, indent=4))" > ~{prefix}_qc_metrics.json
 
