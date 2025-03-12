@@ -15,14 +15,16 @@ workflow generate_chromap_index {
         String output_dir
     }
 
-    call task_check_inputs.check_inputs as genome_check {
-        input:
-            path = genome_fasta
+    if ( (sub(genome_fasta, "^gs:\/\/", "") == sub(genome_fasta, "", "")) ){
+        call task_check_inputs.check_inputs as genome_check {
+            input:
+                path = genome_fasta
+        }
     }
 
     call chromap_index.generate_chromap_index as chromap {
         input:
-            genome_fasta = genome_check.output_file,
+            genome_fasta = select_first([genome_check.output_file, genome_fasta]),
             output_dir = output_dir
     }
 

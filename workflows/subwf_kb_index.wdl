@@ -18,20 +18,25 @@ workflow wf_rna {
         String? kb_temp_folder
     }
 
-    call task_check_inputs.check_inputs as genome_check {
-        input:
-            path = genome_fasta
+
+    if ( (sub(genome_fasta, "^gs:\/\/", "") == sub(genome_fasta, "", "")) ){
+        call task_check_inputs.check_inputs as genome_check {
+            input:
+                path = genome_fasta
+        }
     }
 
-    call task_check_inputs.check_inputs as gtf_check {
-        input:
-            path = gene_gtf
+    if ( (sub(gene_gtf, "^gs:\/\/", "") == sub(gene_gtf, "", "")) ){
+        call task_check_inputs.check_inputs as gtf_check {
+            input:
+                path = gene_gtf
+        }
     }
     
     call task_kb.kb_index as kb{
         input:
-            genome_fasta = genome_check.output_file,
-            gene_gtf = gtf_check.output_file,
+            genome_fasta = select_first([genome_check.output_file, genome_fasta]),
+            gene_gtf = select_first([gtf_check.output_file, gene_gtf]),
             kb_mode = kb_mode,
             output_folder = output_folder,
             kb_temp_folder = kb_temp_folder
