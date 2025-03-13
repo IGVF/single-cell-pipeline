@@ -88,7 +88,7 @@ workflow wf_atac {
     
     String index_string_ = select_first([read_format, seqspec_extract.index_string ])
         
-    call task_align_chromap.atac_align_chromap as align {
+    call task_align_chromap.chromap_generate_fragments as align {
         input:
             fastq_R1 = read1,
             fastq_R2 = read2,
