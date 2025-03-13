@@ -54,7 +54,6 @@ task kb_count {
     String disk_type = if disk_gb > 375 then "SSD" else "LOCAL"
 
     # Define the output names
-    String index_dir = basename(kb_index_tar_gz, ".tar.gz")
     String kb_run_info_json = "${output_dir}/run_info.json"
     String library_qc_metrics_json = "${output_dir}/inspect.json"
     String kb_info_json = "${output_dir}/kb_info.json"
@@ -68,8 +67,8 @@ task kb_count {
         #set up fastq order as l1r1, l1r2, l2r1, l2r2, etc.
         interleaved_files_string=$(paste -d' ' <(printf "%s\n" ~{sep=" " read_barcode_fastqs}) <(printf "%s\n" ~{sep=" " read1_fastqs}) <(printf "%s\n" ~{sep=" " read2_fastqs}) | tr -s ' ')
            
-        mkdir ~{output_dir}
-        tar xvzf ~{kb_index_tar_gz} --no-same-owner -C ./
+        mkdir ~{output_dir} index_folder
+        tar xvzf ~{kb_index_tar_gz} --no-same-owner -C ./index_folder
         
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2
@@ -80,7 +79,7 @@ task kb_count {
         fi
 
         run_kallisto quantify ~{kb_mode} \
-            --index_dir ~{index_dir} \
+            --index_dir index_folder \
             --read_format ~{read_format} \
             --output_dir ~{output_dir} \
             --strand ~{strand} \

@@ -46,8 +46,6 @@ task atac_align_chromap {
 
     String monitor_log = "atac_align_monitor.log.txt"
 
-    String index_dir = basename(reference_index_tar_gz, ".tar.gz")
-
     command <<<
         set -e
 
@@ -55,7 +53,8 @@ task atac_align_chromap {
 
         # Extracting index
         echo '------ Extracting indexing ------' 1>&2
-        tar xvzf ~{reference_index_tar_gz} --no-same-owner -C ./
+        mkdir index_folder
+        tar xvzf ~{reference_index_tar_gz} --no-same-owner -C ./index_folder
 
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the barcode inclusion list ------' 1>&2
@@ -71,7 +70,7 @@ task atac_align_chromap {
         # The strand is presented by '+' and '-' symbol, if '-' the barcode will be reverse-complemented after extraction
         echo '------ align chromap ------' 1>&2
         run_chromap align \
-            --index_dir ~{index_dir} \
+            --index_dir index_folder \
             --read_format ~{read_format} \
             --reference_fasta ~{reference_fasta} \
             --prefix ~{prefix} \
