@@ -36,7 +36,7 @@ task kb_count {
         Float memory_factor = 0.15
         
         #TODO:We need to setup a docker registry.
-        String docker_image = "docker.io/igvf/kallisto-bustools:dev"
+        String docker_image = "docker.io/igvf/kallisto-bustools:main"
         
     }
     

@@ -29,7 +29,7 @@ task atac_align_chromap {
         #TODO: With this setting it usually caps at 75%.
         Float? memory_factor = 0.15
         #TODO:We need to setup a docker registry.
-        String? docker_image = "docker.io/igvf/chromap:dev"
+        String? docker_image = "docker.io/igvf/chromap:main"
     }
 
     # Determine the size of the input

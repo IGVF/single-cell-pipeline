@@ -26,7 +26,7 @@ task kb_index {
         Float? memory_factor = 1
         
         #TODO:We need to setup a docker registry.
-        String? docker_image = "docker.io/igvf/kallisto-bustools:dev"
+        String? docker_image = "docker.io/igvf/kallisto-bustools:main"
         
     }
     
