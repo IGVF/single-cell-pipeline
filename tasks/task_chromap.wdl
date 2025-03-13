@@ -3,7 +3,7 @@ version 1.0
 # TASK
 # atac-chromap
 
-task atac_align_chromap {
+task chromap_generate_fragments {
     meta {
         version: 'v0.1'
         author: 'Eugenio Mattei (emattei@broadinstitute.org) at Broad Institute of MIT and Harvard'
@@ -69,7 +69,7 @@ task atac_align_chromap {
         # The start and end are inclusive and -1 means the end of the read. User may use multiple fields to specify non-consecutive segments, e.g. bc:0:15,bc:32:-1.
         # The strand is presented by '+' and '-' symbol, if '-' the barcode will be reverse-complemented after extraction
         echo '------ align chromap ------' 1>&2
-        run_chromap align \
+        run_chromap align fragments \
             --index_dir index_folder \
             --read_format ~{read_format} \
             --reference_fasta ~{reference_fasta} \

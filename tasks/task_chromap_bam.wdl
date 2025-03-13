@@ -1,13 +1,13 @@
 version 1.0
 
 # TASK
-# SHARE-atac-chromap
+# atac-chromap
 
-task atac_align_chromap {
+task chromap_generate_bam {
     meta {
         version: 'v0.1'
         author: 'Eugenio Mattei (emattei@broadinstitute.org) at Broad Institute of MIT and Harvard'
-        description: 'Broad Institute of MIT and Harvard SHARE-Seq pipeline: align ATAC task using chromap'
+        description: 'Broad Institute of MIT and Harvard IGVF pipeline: align ATAC task using chromap'
     }
 
     input {
@@ -15,38 +15,21 @@ task atac_align_chromap {
         Array[File] fastq_R1
         Array[File] fastq_R2
         Array[File]? fastq_barcode
-        File reference_fasta
         File reference_index_tar_gz
-        File? barcode_inclusion_list
+        File barcode_inclusion_list
         File? barcode_conversion_dict
+        File reference_fasta        
+        String read_format
+        String prefix
 
-        Boolean? trim_adapters
-        Boolean? remove_pcr_duplicates
-        Boolean? remove_pcr_duplicates_at_cell_level
-        Boolean? remove_pcr_duplicates_at_bulk_level
-        Boolean? Tn5_shift
-        Boolean? low_mem
-        Boolean? bed_output
-        Int? max_insert_size
-        Int? mapq_threshold
-        
-
-        Int? multimappers # As per ENCODE pipeline
-        Int? bc_error_threshold
-        Float? bc_probability_threshold
-        #TODO: This should come from a previous task parsing the seqspec.
-        String? read_format 
-
-        String? subpool = "none"
-        String genome_name # GRCh38, mm10
-        String prefix = "test-sample"
+        String? subpool
 
         Int? cpus = 8
         Float? disk_factor = 1
         #TODO: With this setting it usually caps at 75%.
         Float? memory_factor = 0.15
         #TODO:We need to setup a docker registry.
-        String? docker_image = "us.gcr.io/buenrostro-share-seq/task_chromap:dev"
+        String? docker_image = "docker.io/igvf/chromap:main"
     }
 
     # Determine the size of the input
@@ -56,16 +39,10 @@ task atac_align_chromap {
     Float mem_gb = 24.0 + size(reference_fasta, "G") + memory_factor * input_file_size_gb
 
     # Determining disk size base on the size of the input files.
-    Int disk_gb = round(500.0 + disk_factor * input_file_size_gb)
+    Int disk_gb = round(40.0 + disk_factor * input_file_size_gb)
 
     # Determining disk type base on the size of disk.
     String disk_type = if disk_gb > 375 then "SSD" else "LOCAL"
-
-    # Define the output names
-    String sam = '${prefix}.atac.align.k${multimappers}.${genome_name}.sam'
-    String bam = '${prefix}.atac.align.k${multimappers}.${genome_name}.bam'
-    String barcode_log = "${prefix}.atac.align.k${multimappers}.${genome_name}.barcode.summary.csv"
-    String alignment_log = "${prefix}.atac.align.k${multimappers}.${genome_name}.log.txt"
 
     String monitor_log = "atac_align_monitor.log.txt"
 
@@ -76,7 +53,8 @@ task atac_align_chromap {
 
         # Extracting index
         echo '------ Extracting indexing ------' 1>&2
-        time tar -xzf ~{reference_index_tar_gz}
+        mkdir index_folder
+        tar xvzf ~{reference_index_tar_gz} --no-same-owner -C ./index_folder
 
         if [[ '~{barcode_inclusion_list}' == *.gz ]]; then
             echo '------ Decompressing the barcode inclusion list ------' 1>&2
@@ -91,97 +69,106 @@ task atac_align_chromap {
         # The start and end are inclusive and -1 means the end of the read. User may use multiple fields to specify non-consecutive segments, e.g. bc:0:15,bc:32:-1.
         # The strand is presented by '+' and '-' symbol, if '-' the barcode will be reverse-complemented after extraction
         echo '------ align chromap ------' 1>&2
-        time chromap \
-                ~{true='--trim-adapters ' false='' trim_adapters} \
-                ~{true='--remove-pcr-duplicates ' false='' remove_pcr_duplicates} \
-                ~{true='--remove-pcr-duplicates-at-cell-level ' false='' remove_pcr_duplicates_at_cell_level} \
-                ~{true='--remove-pcr-duplicates-at-bulk-level ' false='' remove_pcr_duplicates_at_bulk_level} \
-                ~{true='--Tn5-shift ' false='' Tn5_shift} \
-                ~{true='--low-mem ' false='' low_mem} \
-                --SAM \
-                ~{"-l " + max_insert_size} \
-                ~{"--bc-error-threshold " + bc_error_threshold} \
-                ~{"--bc-probability-threshold " + bc_probability_threshold} \
-                ~{"--read-format " + read_format} \
-                ~{"--drop-repetitive-reads " + multimappers} \
-                -x chromap_index/index \
-                -r ~{reference_fasta} \
-                ~{"-q " + mapq_threshold} \
-                -t ~{cpus} \
-                -1 ~{sep="," fastq_R1} \
-                -2 ~{sep="," fastq_R2} \
-                -b ~{sep="," fastq_barcode} \
-                --barcode-whitelist barcode_inclusion_list.txt \
-                ~{"--barcode-translate " + barcode_conversion_dict} \
-                -o ~{sam} \
-                --summary ~{barcode_log} > ~{alignment_log} 2>&1
-         
-         samtools view -bS ~{sam} > ~{bam}
-         samtools index ~{bam}
+        run_chromap align bam \
+            --index_dir index_folder \
+            --read_format ~{read_format} \
+            --reference_fasta ~{reference_fasta} \
+            --prefix ~{prefix} \
+            ~{"--subpool " + subpool} \
+            --threads ~{cpus} \
+            --barcode_onlist barcode_inclusion_list.txt \
+            ~{"--barcode_translate " + barcode_conversion_dict} \
+            --read1 ~{sep="," fastq_R1} \
+            --read2 ~{sep="," fastq_R2} \
+            --read_barcode ~{sep="," fastq_barcode}
+
 
     >>>
 
     output {
-        File atac_bam = "~{bam}"
-        File atac_bam_index = "~{bam}.bai"
-        File atac_align_barcode_statistics = barcode_log
-        File atac_alignment_log = alignment_log
+        File atac_bam = "~{prefix}.bam"
     }
 
 
     runtime {
         cpu: cpus
         docker: "${docker_image}"
-        singularity: "docker://${docker_image}"
         disks: "local-disk ${disk_gb} ${disk_type}"
         memory: "${mem_gb} GB"
     }
 
     parameter_meta {
-        fastq_R1: {
-                description: 'Read1 fastq.',
-                help: 'Processed fastq for read1.',
-                example: 'input.atac.R1.fq.gz',
-            }
-        fastq_R2: {
-                description: 'Read2 fastq.',
-                help: 'Processed fastq for read2.',
-                example: 'input.atac.R2.fq.gz'
-            }
-        multimappers: {
-                    description: 'Specifiy the numbers of multimappers allowed.',
-                    help: 'This is the integer that will be passed to the -k parameter of bowtie2',
-                    example: [5]
-            }
-        cpus: {
-                description: 'Number of cpus.',
-                help: 'Set the number of cpus used by bowtie2',
-                default: 16
-            }
-        disk_factor: {
-                description: 'Multiplication factor to determine disk required for task align.',
-                help: 'This factor will be multiplied to the size of FASTQs to determine required disk of instance (GCP/AWS) or job (HPCs).',
-                default: 8.0
-            }
-        memory_factor: {
-                description: 'Multiplication factor to determine memory required for task align.',
-                help: 'This factor will be multiplied to the size of FASTQs to determine required memory of instance (GCP/AWS) or job (HPCs).',
-                default: 0.15
-            }
-        genome_name: {
-                description: 'Reference name.',
-                help: 'The name of the reference genome used by the aligner. This is appended to the output file name.',
-                examples: ['GRCh38', 'mm10']
-            }
         prefix: {
-                description: 'Prefix for output files.',
-                help: 'Prefix that will be used to name the output files',
-                examples: 'my-experiment'
-            }
+            description: 'Prefix for the output files.',
+            help: 'Prefix for the output files.',
+            example: 'output.atac'
+        }
+        fastq_R1: {
+            description: 'Read1 fastq.',
+            help: 'Processed fastq for read1.',
+            example: 'input.atac.R1.fq.gz'
+        }
+        fastq_R2: {
+            description: 'Read2 fastq.',
+            help: 'Processed fastq for read2.',
+            example: 'input.atac.R2.fq.gz'
+        }
+        fastq_barcode: {
+            description: 'Barcode fastq.',
+            help: 'Processed fastq for barcodes.',
+            example: 'input.atac.barcode.fq.gz'
+        }
+        reference_index_tar_gz: {
+            description: 'Reference index tar.gz file.',
+            help: 'Compressed tarball containing the reference index files.',
+            example: 'reference_index.tar.gz'
+        }
+        barcode_inclusion_list: {
+            description: 'Barcode inclusion list.',
+            help: 'List of barcodes to include in the analysis.',
+            example: 'barcode_inclusion_list.txt'
+        }
+        barcode_conversion_dict: {
+            description: 'Barcode conversion dictionary.',
+            help: 'Dictionary for converting barcodes.',
+            example: 'barcode_conversion_dict.txt'
+        }
+        reference_fasta: {
+            description: 'Reference fasta file.',
+            help: 'Reference genome fasta file.',
+            example: 'reference_genome.fa'
+        }
+
+        read_format: {
+            description: 'Read format.',
+            help: 'Format of the reads for alignment.',
+            example: 'bc:0:15,r1:16:-1'
+        }
+        subpool: {
+            description: 'Subpool identifier.',
+            help: 'Identifier for the subpool.',
+            default: 'none'
+        }
+
+        cpus: {
+            description: 'Number of CPUs.',
+            help: 'Set the number of CPUs used by the aligner.',
+            default: 8
+        }
+        disk_factor: {
+            description: 'Disk factor.',
+            help: 'Multiplication factor to determine disk required for task align.',
+            default: 1.0
+        }
+        memory_factor: {
+            description: 'Memory factor.',
+            help: 'Multiplication factor to determine memory required for task align.',
+            default: 0.15
+        }
         docker_image: {
-                description: 'Docker image.',
-                help: 'Docker image for the alignment step.',
-                example: ["us.gcr.io/buenrostro-share-seq/share_task_bowtie2"]
-            }
+            description: 'Docker image.',
+            help: 'Docker image for the alignment step.',
+            example: 'us.gcr.io/buenrostro-share-seq/task_chromap:dev'
+        }
     }
 }
