@@ -200,10 +200,9 @@ workflow single_cell_pipeline {
         File? rna_kb_parameters_json = rna.rna_kb_parameters_json
     
 
-        # ATAC ouputs
-        #File? atac_bam = atac.atac_chromap_bam
-        #File? atac_bam_index = atac.atac_chromap_bam_index
-        #File? atac_bam_log = atac.atac_chromap_bam_alignment_stats
+        # ATAC outputs
+        File? atac_bam = atac.atac_chromap_bam
+        File? atac_bam_summary_stats = atac.atac_chromap_bam_summary
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
         File? atac_fragments_log = atac.atac_fragments_alignment_stats
