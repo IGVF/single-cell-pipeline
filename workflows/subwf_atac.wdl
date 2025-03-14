@@ -3,7 +3,7 @@ version 1.0
 # Import the tasks called by the pipeline
 import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_chromap.wdl" as task_align_chromap
-#import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
+import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
 import "../tasks/task_log_atac.wdl" as task_log_atac
 
 
@@ -88,7 +88,7 @@ workflow wf_atac {
     
     String index_string_ = select_first([read_format, seqspec_extract.index_string ])
         
-    call task_align_chromap.chromap_generate_fragments as align {
+    call task_align_chromap.chromap_generate_fragments as generate_fragments {
         input:
             fastq_R1 = read1,
             fastq_R2 = read2,
@@ -106,54 +106,40 @@ workflow wf_atac {
             read_format = index_string_
     }
 
-    # call task_align_chromap_bam.atac_align_chromap as generate_bam {
-    #     input:
-    #         fastq_R1 = read1,
-    #         fastq_R2 = read2,
-    #         fastq_barcode = fastq_barcode,
-    #         reference_fasta = reference_fasta,
-    #         reference_index_tar_gz = reference_index_tar_gz,
-    #         trim_adapters = trim_adapters,
-    #         genome_name = genome_name,
-    #         subpool = subpool,
-    #         multimappers = align_multimappers,
-    #         barcode_inclusion_list = barcode_whitelist_[0],
-    #         barcode_conversion_dict = barcode_conversion_dict,
-    #         prefix = prefix,
-    #         disk_factor = align_bam_disk_factor,
-    #         memory_factor = align_bam_memory_factor,
-    #         cpus = align_bam_cpus,
-    #         docker_image = align_docker_image,
-    #         remove_pcr_duplicates = remove_pcr_duplicates,
-    #         remove_pcr_duplicates_at_cell_level = remove_pcr_duplicates_at_cell_level,
-    #         remove_pcr_duplicates_at_bulk_level = remove_pcr_duplicates_at_bulk_level,
-    #         Tn5_shift = Tn5_shift,
-    #         low_mem = low_mem,
-    #         bed_output = bed_output,
-    #         max_insert_size = max_insert_size,
-    #         mapq_threshold = mapq_threshold,
-    #         bc_error_threshold = bc_error_threshold,
-    #         bc_probability_threshold = bc_probability_threshold,
-    #         read_format = index_string_
-    # }
+    call task_align_chromap_bam.chromap_generate_bam as generate_bam {
+        input:
+            fastq_R1 = read1,
+            fastq_R2 = read2,
+            fastq_barcode = fastq_barcode,
+            reference_fasta = reference_fasta,
+            reference_index_tar_gz = reference_index_tar_gz,
+            subpool = subpool,
+            prefix = prefix,
+            barcode_inclusion_list = barcode_inclusion_list_[0],
+            barcode_conversion_dict = barcode_conversion_dict,
+            disk_factor = align_disk_factor,
+            memory_factor = align_memory_factor,
+            cpus = align_cpus,
+            docker_image = align_docker_image,
+            read_format = index_string_
+    }
 
     call task_log_atac.log_atac as log_atac {
         input:
-            alignment_log = align.atac_alignment_log,
-            barcode_log = align.atac_barcode_summary,
+            alignment_log = generate_fragments.atac_alignment_log,
+            barcode_log = generate_fragments.atac_barcode_summary,
             prefix = prefix
     }
 
     output {
         # Align
-        File atac_fragments_alignment_stats = align.atac_alignment_log
-        File atac_fragments = align.atac_fragments
-        File atac_fragments_index = align.atac_fragments_index
-        File atac_chromap_barcode_summary = align.atac_barcode_summary
+        File atac_fragments_alignment_stats = generate_fragments.atac_alignment_log
+        File atac_fragments = generate_fragments.atac_fragments
+        File atac_fragments_index = generate_fragments.atac_fragments_index
+        File atac_chromap_barcode_summary = generate_fragments.atac_barcode_summary
         File? atac_qc_metrics = log_atac.atac_statistics_json
 
-        #File? atac_chromap_bam = generate_bam.atac_bam
-        #File? atac_chromap_bam_index = generate_bam.atac_bam_index
-        #File? atac_chromap_bam_alignment_stats = generate_bam.atac_alignment_log
+        File atac_chromap_bam = generate_bam.atac_bam
+        File? atac_chromap_bam_summary = generate_bam.atac_bam_summary
     }
 }
