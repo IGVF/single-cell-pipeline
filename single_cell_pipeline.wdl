@@ -123,17 +123,20 @@ workflow single_cell_pipeline {
                 }
             }
         }
-    }
-    if (length(fastq_barcode_rna) > 0){
-        if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
-            scatter(file in fastq_barcode_rna){
-                call check_inputs.check_inputs as check_fastq_barcode_rna{
-                    input:
-                        path = file
+
+        if (length(fastq_barcode_rna) > 0){
+            if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
+                scatter(file in fastq_barcode_rna){
+                    call check_inputs.check_inputs as check_fastq_barcode_rna{
+                        input:
+                            path = file
+                    }
                 }
             }
         }
+
     }
+    
     
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
