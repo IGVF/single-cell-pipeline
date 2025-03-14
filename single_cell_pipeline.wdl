@@ -68,32 +68,34 @@ workflow single_cell_pipeline {
     Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
     
     if(process_atac){
-        #ATAC Read1
-        if ( (sub(atac_read1[0], "^gs:\/\/", "") == sub(atac_read1[0], "", "")) ){
-            scatter(file in atac_read1){
-                call check_inputs.check_inputs as check_read1_atac{
-                    input:
-                        path = file
+        if ( atac_read1[0] != "" ) {
+            #ATAC Read1
+            if ( (sub(atac_read1[0], "^gs:\/\/", "") == sub(atac_read1[0], "", "")) ){
+                scatter(file in atac_read1){
+                    call check_inputs.check_inputs as check_read1_atac{
+                        input:
+                            path = file
+                    }
                 }
             }
-        }
-        
-        #ATAC Read2
-        if ( (sub(atac_read2[0], "^gs:\/\/", "") == sub(atac_read2[0], "", "")) ){
-            scatter(file in atac_read2){
-                call check_inputs.check_inputs as check_read2_atac{
-                    input:
-                        path = file
+            
+            #ATAC Read2
+            if ( (sub(atac_read2[0], "^gs:\/\/", "") == sub(atac_read2[0], "", "")) ){
+                scatter(file in atac_read2){
+                    call check_inputs.check_inputs as check_read2_atac{
+                        input:
+                            path = file
+                    }
                 }
             }
-        }
 
-        #ATAC barcode
-        if ( (sub(fastq_barcode[0], "^gs:\/\/", "") == sub(fastq_barcode[0], "", "")) ){
-            scatter(file in fastq_barcode){
-                call check_inputs.check_inputs as check_fastq_barcode{
-                    input:
-                        path = file
+            #ATAC barcode
+            if ( (sub(fastq_barcode[0], "^gs:\/\/", "") == sub(fastq_barcode[0], "", "")) ){
+                scatter(file in fastq_barcode){
+                    call check_inputs.check_inputs as check_fastq_barcode{
+                        input:
+                            path = file
+                    }
                 }
             }
         }
@@ -104,32 +106,35 @@ workflow single_cell_pipeline {
     Array[File] fastq_barcode_ = select_first([ check_fastq_barcode.output_file, fastq_barcode ])
     
     if(process_rna){
-        #RNA Read1
-        if ( (sub(rna_read1[0], "^gs:\/\/", "") == sub(rna_read1[0], "", "")) ){
-            scatter(file in rna_read1){
-                call check_inputs.check_inputs as check_read1_rna{
-                    input:
-                        path = file
-                }
-            }
-        }
-
-        #RNA Read2
-        if ( (sub(rna_read2[0], "^gs:\/\/", "") == sub(rna_read2[0], "", "")) ){
-            scatter(file in rna_read2){
-                call check_inputs.check_inputs as check_read2_rna{
-                    input:
-                        path = file
-                }
-            }
-        }
-
-        if (length(fastq_barcode_rna) > 0){
-            if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
-                scatter(file in fastq_barcode_rna){
-                    call check_inputs.check_inputs as check_fastq_barcode_rna{
+        if ( rna_read1[0] != "" ) {
+            #RNA Read1
+            if ( (sub(rna_read1[0], "^gs:\/\/", "") == sub(rna_read1[0], "", "")) ){
+                scatter(file in rna_read1){
+                    call check_inputs.check_inputs as check_read1_rna{
                         input:
                             path = file
+                    }
+                }
+            }
+
+            #RNA Read2
+            if ( (sub(rna_read2[0], "^gs:\/\/", "") == sub(rna_read2[0], "", "")) ){
+                scatter(file in rna_read2){
+                    call check_inputs.check_inputs as check_read2_rna{
+                        input:
+                            path = file
+                    }
+                }
+            }
+
+            #RNA barcode
+            if (length(fastq_barcode_rna) > 0){
+                if ( (sub(fastq_barcode_rna[0], "^gs:\/\/", "") == sub(fastq_barcode_rna[0], "", "")) ){
+                    scatter(file in fastq_barcode_rna){
+                        call check_inputs.check_inputs as check_fastq_barcode_rna{
+                            input:
+                                path = file
+                        }
                     }
                 }
             }
