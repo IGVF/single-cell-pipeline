@@ -87,7 +87,7 @@ task chromap_generate_bam {
 
     output {
         File atac_bam = "~{prefix}.bam"
-        File atac_bam_summary = "{prefix}.barcode.summary.csv"
+        File atac_bam_summary = "~{prefix}.barcode.summary.csv"
     }
 
 
