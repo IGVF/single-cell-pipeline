@@ -81,12 +81,15 @@ task chromap_generate_bam {
             --read1 ~{sep="," fastq_R1} \
             --read2 ~{sep="," fastq_R2} \
             --read_barcode ~{sep="," fastq_barcode}
+        
+        samtools index ~{prefix}.bam
 
 
     >>>
 
     output {
         File atac_bam = "~{prefix}.bam"
+        File atac_bam_index = "~{prefix}.bam.bai"
         File atac_bam_summary = "~{prefix}.barcode.summary.csv"
     }
 

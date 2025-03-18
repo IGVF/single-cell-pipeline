@@ -189,6 +189,7 @@ workflow single_cell_pipeline {
 
         # ATAC outputs
         File? atac_bam = atac.atac_chromap_bam
+        File? atac_bam_index = atac.atac_chromap_bam_index
         File? atac_bam_summary_stats = atac.atac_chromap_bam_summary
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
