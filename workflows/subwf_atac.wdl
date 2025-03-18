@@ -1,7 +1,6 @@
 version 1.0
 
 # Import the tasks called by the pipeline
-import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_chromap.wdl" as task_align_chromap
 import "../tasks/task_chromap_bam.wdl" as task_align_chromap_bam
 import "../tasks/task_log_atac.wdl" as task_log_atac
@@ -16,7 +15,6 @@ workflow wf_atac {
 
     input {
         # ATAC sub-workflow inputs
-        String chemistry
         String prefix = "igvf_output_atac"
         String? subpool = "none"
 
@@ -27,10 +25,9 @@ workflow wf_atac {
         Array[File] read1
         Array[File] read2
         Array[File] fastq_barcode
-        Array[File] seqspecs
-        Array[File] barcode_inclusion_list
+        File barcode_inclusion_list
         File reference_index_tar_gz
-        String? read_format
+        String read_format
         # Runtime parameters
         Int? align_cpus
         Float? align_disk_factor = 8.0
@@ -54,39 +51,8 @@ workflow wf_atac {
         File? filtered_bam
         File? filtered_bam_index
 
-        # RNA seqspec extract runtime parameters
-        Int? seqspec_extract_cpus
-        Float? seqspec_extract_disk_factor
-        Float? seqspec_extract_memory_factor
-        String? seqspec_extract_docker_image
-    }
-    # run only if seqspec array is not empty
-    if (length(seqspecs) > 0 && !defined(read_format)) {
-        #should implement check if length of seqspecs == length of read1 == length of read2
-        scatter ( idx in range(length(seqspecs)) ) {
-            call task_seqspec_extract.seqspec_extract as seqspec_extract {
-                input:
-                    seqspec = seqspecs[idx],
-                    fastq_R1 = basename(read1[idx]),
-                    fastq_R2 = basename(read2[idx]),
-                    fastq_barcode = basename(fastq_barcode[idx]),
-                    onlists = barcode_inclusion_list,
-                    modality = "atac",
-                    tool_format = "chromap",
-                    onlist_format = "product",
-                    chemistry = chemistry,
-                    cpus = seqspec_extract_cpus,
-                    disk_factor = seqspec_extract_disk_factor,
-                    memory_factor = seqspec_extract_memory_factor,
-                    docker_image = seqspec_extract_docker_image
-            }
-        }
     }
     
-    #Assuming this whitelist is applicable to all fastqs for kb task
-    Array[File] barcode_inclusion_list_ = select_first([barcode_inclusion_list, seqspec_extract.onlist])
-    
-    String index_string_ = select_first([read_format, seqspec_extract.index_string ])
         
     call task_align_chromap.chromap_generate_fragments as generate_fragments {
         input:
@@ -97,13 +63,13 @@ workflow wf_atac {
             reference_index_tar_gz = reference_index_tar_gz,
             subpool = subpool,
             prefix = prefix,
-            barcode_inclusion_list = barcode_inclusion_list_[0],
+            barcode_inclusion_list = barcode_inclusion_list,
             barcode_conversion_dict = barcode_conversion_dict,
             disk_factor = align_disk_factor,
             memory_factor = align_memory_factor,
             cpus = align_cpus,
             docker_image = align_docker_image,
-            read_format = index_string_
+            read_format = read_format
     }
 
     call task_align_chromap_bam.chromap_generate_bam as generate_bam {
@@ -115,13 +81,13 @@ workflow wf_atac {
             reference_index_tar_gz = reference_index_tar_gz,
             subpool = subpool,
             prefix = prefix,
-            barcode_inclusion_list = barcode_inclusion_list_[0],
+            barcode_inclusion_list = barcode_inclusion_list,
             barcode_conversion_dict = barcode_conversion_dict,
             disk_factor = align_disk_factor,
             memory_factor = align_memory_factor,
             cpus = align_cpus,
             docker_image = align_docker_image,
-            read_format = index_string_
+            read_format = read_format
     }
 
     call task_log_atac.log_atac as log_atac {

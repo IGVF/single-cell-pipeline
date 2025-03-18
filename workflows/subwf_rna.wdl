@@ -1,7 +1,6 @@
 version 1.0
 
 # Import the tasks called by the pipeline
-import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 import "../tasks/task_kb_count.wdl" as task_kb
 
 workflow wf_rna {
@@ -17,14 +16,12 @@ workflow wf_rna {
         Array[File] read2
         Array[File]? read_barcode
                 
-        Array[File] seqspecs
-        String? read_format
-        String chemistry
+        String read_format
         File? replacement_list
 
         File kb_index_tar_gz
         
-        Array[File] barcode_inclusion_list
+        File barcode_inclusion_list
         
         String? subpool
         String prefix
@@ -36,41 +33,9 @@ workflow wf_rna {
         Float? kb_disk_factor
         Float? kb_memory_factor
         String? kb_docker_image
+        
+    }
 
-        
-        # RNA seqspec extract runtime parameters
-        Int? seqspec_extract_cpus
-        Float? seqspec_extract_disk_factor
-        Float? seqspec_extract_memory_factor
-        String? seqspec_extract_docker_image
-        
-    }
-    
-    #Assuming this whitelist is applicable to all fastqs for kb task
-    if (length(seqspecs) > 0 && !defined(read_format)) {
-        #should implement check if length of seqspecs == length of read1 == length of read2
-        scatter ( idx in range(length(seqspecs)) ) {
-            call task_seqspec_extract.seqspec_extract as seqspec_extract {
-                input:
-                    seqspec = seqspecs[idx],
-                    fastq_R1 = basename(read1[idx]),
-                    fastq_R2 = basename(read2[idx]),
-                    onlists = barcode_inclusion_list,
-                    modality = "rna",
-                    tool_format = "kb",
-                    chemistry = chemistry,
-                    #onlist_format = if chemistry=="shareseq" || chemistry=="parse" then "multi" else "product",
-                    onlist_format = "product", #temp fix until bustools bug is fixed
-                    cpus = seqspec_extract_cpus,
-                    disk_factor = seqspec_extract_disk_factor,
-                    memory_factor = seqspec_extract_memory_factor,
-                    docker_image = seqspec_extract_docker_image
-            }
-        }
-    }
-    Array[File] barcode_inclusion_list_ = select_first([barcode_inclusion_list, seqspec_extract.onlist])
-    
-    String read_format_ = select_first([read_format, seqspec_extract.index_string ])
 
     call task_kb.kb_count as kb{
         input:
@@ -82,8 +47,8 @@ workflow wf_rna {
             kb_index_tar_gz = kb_index_tar_gz,
             kb_mode = kb_mode,
             output_dir = prefix,
-            barcode_inclusion_list = barcode_inclusion_list_[0],
-            read_format = read_format_,
+            barcode_inclusion_list = barcode_inclusion_list,
+            read_format = read_format,
             subpool = subpool,
             cpus = kb_cpus,
             disk_factor = kb_disk_factor,

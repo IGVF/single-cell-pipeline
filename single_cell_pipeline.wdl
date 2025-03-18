@@ -13,29 +13,27 @@ workflow single_cell_pipeline {
     input {
         # Commond inputs
         Boolean create_onlist_mapping = false
-        String chemistry
         String prefix # Analysis set
         String? subpool = "none" # To address
         File genome_tsv
-        Array[File] seqspecs = []
 
         # ATAC-specific inputs
         Array[File] atac_read1
         Array[File] atac_read2
         Array[File] fastq_barcode
-        Array[File] atac_barcode_inclusion_list
+        File atac_barcode_inclusion_list
         File? chromap_genome_index_tar_gz
         File? genome_fasta
-        String? atac_read_format
+        String atac_read_format
 
 
         # RNA-specific inputs
         Array[File] rna_read1
         Array[File] rna_read2
         Array[File] fastq_barcode_rna = []
-        Array[File] rna_barcode_inclusion_list
+        File rna_barcode_inclusion_list
         String kb_mode = "nac"
-        String? rna_read_format
+        String rna_read_format
         File? kb_genome_index_tar_gz
     }
 
@@ -46,18 +44,7 @@ workflow single_cell_pipeline {
 
     Boolean process_atac = if length(atac_read1)>0 then true else false
     Boolean process_rna = if length(rna_read1)>0 then true else false
-      
-    #seqspec
-    if (length(seqspecs) > 0) {
-        if (sub(seqspecs[0], "^gs:\/\/", "") == sub(seqspecs[0], "", "")){
-            scatter(file in seqspecs){
-                call check_inputs.check_inputs as check_seqspec{
-                    input:
-                        path = file
-                }
-            }
-        }
-    }
+
     if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
         call check_inputs.check_inputs as check_genome_fasta{
             input:
@@ -65,7 +52,6 @@ workflow single_cell_pipeline {
         }
     }
     
-    Array[File] seqspecs_ = select_first([ check_seqspec.output_file, seqspecs ])
     
     if(process_atac){
         if ( atac_read1[0] != "" ) {
@@ -151,8 +137,8 @@ workflow single_cell_pipeline {
     if ( create_onlist_mapping && process_atac && process_rna){
         call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
             input:
-                atac_barcode_inclusion_list = atac_barcode_inclusion_list[0],
-                rna_barcode_inclusion_list = rna_barcode_inclusion_list[0]
+                atac_barcode_inclusion_list = atac_barcode_inclusion_list,
+                rna_barcode_inclusion_list = rna_barcode_inclusion_list
         }
     }
     
@@ -164,8 +150,6 @@ workflow single_cell_pipeline {
                     read1 = read1_rna_,
                     read2 = read2_rna_,
                     read_barcode = fastq_barcode_rna_,
-                    seqspecs = seqspecs_,
-                    chemistry = chemistry,
                     barcode_inclusion_list = rna_barcode_inclusion_list,
                     kb_mode = kb_mode,
                     kb_index_tar_gz = idx_tar_rna_,
@@ -182,9 +166,7 @@ workflow single_cell_pipeline {
                 input:
                     read1 = read1_atac_,
                     read2 = read2_atac_,
-                    seqspecs = seqspecs_,
                     fastq_barcode = fastq_barcode_,
-                    chemistry = chemistry,
                     reference_fasta = select_first([check_genome_fasta.output_file, genome_fasta_]),
                     subpool = subpool,
                     barcode_inclusion_list = atac_barcode_inclusion_list,

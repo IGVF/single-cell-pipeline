@@ -35,7 +35,7 @@ task log_atac {
     }
 
     runtime {
-        docker: 'docker.io/igvf/chromap:dev'
+        docker: 'docker.io/igvf/chromap:main'
     }
     parameter_meta {
         alignment_log: {
