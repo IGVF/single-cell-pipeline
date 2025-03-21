@@ -14,6 +14,7 @@ workflow single_cell_pipeline {
         # Commond inputs
         Boolean create_onlist_mapping = false
         String prefix # Analysis set
+        File? igvf_credentials
         String? subpool = "none" # To address
         File genome_tsv
 
@@ -60,7 +61,8 @@ workflow single_cell_pipeline {
                 scatter(file in atac_read1){
                     call check_inputs.check_inputs as check_read1_atac{
                         input:
-                            path = file
+                            path = file,
+                            igvf_credentials = igvf_credentials
                     }
                 }
             }
@@ -70,7 +72,8 @@ workflow single_cell_pipeline {
                 scatter(file in atac_read2){
                     call check_inputs.check_inputs as check_read2_atac{
                         input:
-                            path = file
+                            path = file,
+                            igvf_credentials = igvf_credentials
                     }
                 }
             }
@@ -80,7 +83,8 @@ workflow single_cell_pipeline {
                 scatter(file in fastq_barcode){
                     call check_inputs.check_inputs as check_fastq_barcode{
                         input:
-                            path = file
+                            path = file,
+                            igvf_credentials = igvf_credentials
                     }
                 }
             }
@@ -98,7 +102,8 @@ workflow single_cell_pipeline {
                 scatter(file in rna_read1){
                     call check_inputs.check_inputs as check_read1_rna{
                         input:
-                            path = file
+                            path = file,
+                            igvf_credentials = igvf_credentials
                     }
                 }
             }
@@ -108,7 +113,8 @@ workflow single_cell_pipeline {
                 scatter(file in rna_read2){
                     call check_inputs.check_inputs as check_read2_rna{
                         input:
-                            path = file
+                            path = file,
+                            igvf_credentials = igvf_credentials
                     }
                 }
             }
@@ -119,7 +125,8 @@ workflow single_cell_pipeline {
                     scatter(file in fastq_barcode_rna){
                         call check_inputs.check_inputs as check_fastq_barcode_rna{
                             input:
-                                path = file
+                                path = file,
+                                igvf_credentials = igvf_credentials
                         }
                     }
                 }
