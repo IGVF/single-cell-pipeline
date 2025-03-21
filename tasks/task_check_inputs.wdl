@@ -18,7 +18,7 @@ task check_inputs {
         Int? cpus = 1
         Float? disk_factor = 1.0
         Float? memory_factor = 1.0
-        String? docker_image = "swekhande/shareseq-prod:check-inputs"    
+        String? docker_image = "busybox:latest"    
     }
 
     Float mem_gb = 4.0
@@ -49,7 +49,7 @@ task check_inputs {
         if [[ "~{path}" == syn* ]]; then
             synapse get ~{path}
         elif [[ "~{path}" == https* ]]; then
-            python -m wget ~{path}
+            wget ~{path}
         fi
   
     >>>
