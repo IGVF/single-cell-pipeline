@@ -194,9 +194,9 @@ workflow single_cell_pipeline {
         File? atac_fragments = atac.atac_fragments
         File? atac_fragments_index = atac.atac_fragments_index
         File? atac_fragments_log = atac.atac_fragments_alignment_stats
-        File? atac_qc_metrics = atac.atac_qc_metrics
+        File? atac_fragments_metrics = atac.atac_fragments_qc_metrics
         File? atac_fragments_alignment_stats = atac.atac_fragments_alignment_stats
-        File? atac_chromap_barcode_summary = atac.atac_chromap_barcode_summary
+        File? atac_fragments_barcode_summary = atac.atac_fragments_barcode_summary
 
 
     }
