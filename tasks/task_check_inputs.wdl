@@ -49,7 +49,7 @@ task check_inputs {
         if [[ "~{path}" == syn* ]]; then
             synapse get ~{path}
         elif [[ "~{path}" == https* ]]; then
-            python3 -m download_with_credentials ~{path}
+            python3 /usr/local/bin/download_with_credentials.py ~{path}
         fi
   
     >>>
