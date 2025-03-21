@@ -12,7 +12,8 @@ task check_inputs {
     }
 
     input {
-        String path 
+        String path
+        File? igvf_credentials
         
         Int? cpus = 1
         Float? disk_factor = 1.0
@@ -33,6 +34,13 @@ task check_inputs {
         set -e
 
         bash $(which monitor_script.sh) | tee ~{monitor_fnp_log} 1>&2 &
+
+        # Export IGVF credentials if the file exists
+        if [[ -f "~{igvf_credentials}" ]]; then
+            while IFS= read -r line; do
+                    export "$line"
+            done < "~{igvf_credentials}"
+        fi
         
         mkdir files
         cd files
