@@ -18,7 +18,7 @@ task check_inputs {
         Int? cpus = 1
         Float? disk_factor = 1.0
         Float? memory_factor = 1.0
-        String? docker_image = "debian:latest"    
+        String? docker_image = "polumechanos/check_inputs:main"    
     }
 
     Float mem_gb = 4.0
@@ -32,8 +32,6 @@ task check_inputs {
     command <<<
         
         set -e
-
-        apt-get update && apt-get install -y wget
 
         bash $(which monitor_script.sh) | tee ~{monitor_fnp_log} 1>&2 &
 
@@ -51,7 +49,7 @@ task check_inputs {
         if [[ "~{path}" == syn* ]]; then
             synapse get ~{path}
         elif [[ "~{path}" == https* ]]; then
-            wget ~{path}
+            python3 -m download_with_credentials ~{path}
         fi
   
     >>>
