@@ -18,7 +18,7 @@ task check_inputs {
         Int? cpus = 1
         Float? disk_factor = 1.0
         Float? memory_factor = 1.0
-        String? docker_image = "busybox:latest"    
+        String? docker_image = "debian:latest"    
     }
 
     Float mem_gb = 4.0
@@ -32,6 +32,8 @@ task check_inputs {
     command <<<
         
         set -e
+
+        apt-get update && apt-get install -y wget
 
         bash $(which monitor_script.sh) | tee ~{monitor_fnp_log} 1>&2 &
 
