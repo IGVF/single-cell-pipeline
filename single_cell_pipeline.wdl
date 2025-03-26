@@ -49,7 +49,24 @@ workflow single_cell_pipeline {
     if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
         call check_inputs.check_inputs as check_genome_fasta{
             input:
-                path = genome_fasta_
+                path = genome_fasta_,
+                igvf_credentials = igvf_credentials
+        }
+    }
+
+    if (sub(idx_tar_atac_, "^gs:\/\/", "") == sub(idx_tar_atac_, "", "")){
+        call check_inputs.check_inputs as check_genome_index{
+            input:
+                path = idx_tar_atac_,
+                igvf_credentials = igvf_credentials
+        }
+    }
+
+    if (sub(idx_tar_rna_, "^gs:\/\/", "") == sub(idx_tar_rna_, "", "")){
+        call check_inputs.check_inputs as check_transcriptome_index{
+            input:
+                path = idx_tar_rna_,
+                igvf_credentials = igvf_credentials
         }
     }
     
@@ -159,7 +176,7 @@ workflow single_cell_pipeline {
                     read_barcode = fastq_barcode_rna_,
                     barcode_inclusion_list = rna_barcode_inclusion_list,
                     kb_mode = kb_mode,
-                    kb_index_tar_gz = idx_tar_rna_,
+                    kb_index_tar_gz = select_first([check_transcriptome_index.output_file, idx_tar_rna_]),
                     prefix = prefix,
                     subpool = subpool,
                     read_format = rna_read_format
@@ -177,7 +194,7 @@ workflow single_cell_pipeline {
                     reference_fasta = select_first([check_genome_fasta.output_file, genome_fasta_]),
                     subpool = subpool,
                     barcode_inclusion_list = atac_barcode_inclusion_list,
-                    reference_index_tar_gz = idx_tar_atac_,
+                    reference_index_tar_gz = select_first([check_genome_index.output_file, idx_tar_atac_]),
                     prefix = prefix,
                     read_format = atac_read_format,
                     barcode_conversion_dict = barcode_mapping.tenx_barcode_conversion_dict,
