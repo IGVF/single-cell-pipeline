@@ -36,6 +36,7 @@ workflow single_cell_pipeline {
         String kb_mode = "nac"
         String rna_read_format
         File? kb_genome_index_tar_gz
+        Array[File] rna_replacement_list = []
     }
 
     Map[String, File] annotations = read_map(genome_tsv)
@@ -148,15 +149,27 @@ workflow single_cell_pipeline {
                     }
                 }
             }
-        }
 
+            #RNA replacement list
+            if (length(rna_replacement_list) > 0){
+                if ( (sub(rna_replacement_list[0], "^gs:\/\/", "") == sub(rna_replacement_list[0], "", "")) ){
+                    scatter(file in rna_replacement_list){
+                        call check_inputs.check_inputs as check_rna_replacement_list{
+                            input:
+                                path = file,
+                                igvf_credentials = igvf_credentials
+                        }
+                    }
+                }
+            }
+        }
     }
     
     
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
-    
+    Array[File] rna_replacement_list_ = select_first([ check_rna_replacement_list.output_file, rna_replacement_list ])
         
     if ( create_onlist_mapping && process_atac && process_rna){
         call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
@@ -179,7 +192,8 @@ workflow single_cell_pipeline {
                     kb_index_tar_gz = select_first([check_transcriptome_index.output_file, idx_tar_rna_]),
                     prefix = prefix,
                     subpool = subpool,
-                    read_format = rna_read_format
+                    read_format = rna_read_format,
+                    replacement_list = rna_replacement_list_[0]
             }
         }
     }
