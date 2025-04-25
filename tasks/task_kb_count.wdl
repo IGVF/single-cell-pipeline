@@ -78,13 +78,25 @@ task kb_count {
             cat ~{barcode_inclusion_list} > barcode_inclusion_list.txt
         fi
 
+        if [[ -n "~{replacement_list}" ]]; then
+            if [[ "~{replacement_list}" == *.gz ]]; then
+                echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2
+                gunzip -c ~{replacement_list} > replacement_list.txt
+            else
+                echo '------ No decompression needed for the RNA barcode inclusion list ------' 1>&2
+                cat ~{replacement_list} > replacement_list.txt
+            fi
+        else
+            echo '------ No RNA barcode inclusion list provided ------' 1>&2
+        fi
+
         run_kallisto quantify ~{kb_mode} \
             --index_dir index_folder \
             --read_format ~{read_format} \
             --output_dir ~{output_dir} \
             --strand ~{strand} \
             ~{"--subpool " + subpool} \
-            ~{"--replacement_list " + replacement_list} \
+            ~{if defined(replacement_list) then "--replacement_list replacement_list.txt" else ""} \
             --threads ~{threads} \
             --barcode_onlist barcode_inclusion_list.txt \
             $interleaved_files_string
