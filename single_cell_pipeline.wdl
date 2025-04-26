@@ -149,6 +149,18 @@ workflow single_cell_pipeline {
                     }
                 }
             }
+
+            #RNA barcode
+            if (defined(rna_replacement_list)){
+                File nonoptional_replacement_list = select_first([rna_replacement_list])
+                if ( (sub(nonoptional_replacement_list, "^gs:\/\/", "") == sub(nonoptional_replacement_list, "", "")) ){
+                    call check_inputs.check_inputs as check_rna_replacement_list{
+                        input:
+                            path = nonoptional_replacement_list,
+                            igvf_credentials = igvf_credentials
+                    }
+                }
+            }
         }
     }
     
@@ -181,7 +193,7 @@ workflow single_cell_pipeline {
                     prefix = prefix,
                     subpool = subpool,
                     read_format = rna_read_format,
-                    replacement_list = rna_replacement_list
+                    replacement_list = if defined(check_rna_replacement_list.output_file) then check_rna_replacement_list.output_file else rna_replacement_list
             }
         }
     }
