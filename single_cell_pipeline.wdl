@@ -36,7 +36,7 @@ workflow single_cell_pipeline {
         String kb_mode = "nac"
         String rna_read_format
         File? kb_genome_index_tar_gz
-        File? rna_replacement_list 
+        File? rna_replacement_list #assume this is gs link or empty
     }
 
     Map[String, File] annotations = read_map(genome_tsv)
@@ -149,18 +149,6 @@ workflow single_cell_pipeline {
                     }
                 }
             }
-
-            #RNA replacement list
-            if (defined(rna_replacement_list)){
-                File nonoptional_replacement_list = select_first([rna_replacement_list])
-                if ( (sub(nonoptional_replacement_list, "^gs:\/\/", "") == sub(nonoptional_replacement_list, "", "")) ){
-                    call check_inputs.check_inputs as check_rna_replacement_list{
-                        input:
-                            path = nonoptional_replacement_list,
-                            igvf_credentials = igvf_credentials
-                    }
-                }
-            }
         }
     }
     
@@ -168,7 +156,8 @@ workflow single_cell_pipeline {
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
-    File? rna_replacement_list_ = select_first([ check_rna_replacement_list.output_file, rna_replacement_list ])
+    
+    #File? rna_replacement_list_ = select_first([ check_rna_replacement_list.output_file, rna_replacement_list ])
         
     if ( create_onlist_mapping && process_atac && process_rna){
         call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
@@ -192,7 +181,7 @@ workflow single_cell_pipeline {
                     prefix = prefix,
                     subpool = subpool,
                     read_format = rna_read_format,
-                    replacement_list = rna_replacement_list_
+                    replacement_list = rna_replacement_list
             }
         }
     }
