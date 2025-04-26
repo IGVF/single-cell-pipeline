@@ -193,7 +193,7 @@ workflow single_cell_pipeline {
                     prefix = prefix,
                     subpool = subpool,
                     read_format = rna_read_format,
-                    replacement_list = rna_replacement_list_[0]
+                    replacement_list = if length(rna_replacement_list_) > 0 then rna_replacement_list_[0] else []
             }
         }
     }
