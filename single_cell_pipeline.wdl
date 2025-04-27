@@ -6,12 +6,12 @@ import "workflows/subwf_atac.wdl" as subwf_atac
 import "workflows/subwf_rna.wdl" as subwf_rna
 import "tasks/10x_create_barcode_mapping.wdl" as tenx_barcode_map
 
-# WDL workflow for SHARE-seq
+# WDL workflow for processing single-cell multiomic datasets
 
 workflow single_cell_pipeline {
 
     input {
-        # Commond inputs
+        # Common inputs
         Boolean create_onlist_mapping = false
         String prefix # Analysis set
         File? igvf_credentials
@@ -26,7 +26,6 @@ workflow single_cell_pipeline {
         File? chromap_genome_index_tar_gz
         File? genome_fasta
         String atac_read_format
-
 
         # RNA-specific inputs
         Array[File] rna_read1
@@ -71,9 +70,9 @@ workflow single_cell_pipeline {
         }
     }
     
-    
     if(process_atac){
         if ( atac_read1[0] != "" ) {
+
             #ATAC Read1
             if ( (sub(atac_read1[0], "^gs:\/\/", "") == sub(atac_read1[0], "", "")) ){
                 scatter(file in atac_read1){
@@ -115,6 +114,7 @@ workflow single_cell_pipeline {
     
     if(process_rna){
         if ( rna_read1[0] != "" ) {
+
             #RNA Read1
             if ( (sub(rna_read1[0], "^gs:\/\/", "") == sub(rna_read1[0], "", "")) ){
                 scatter(file in rna_read1){
@@ -150,7 +150,7 @@ workflow single_cell_pipeline {
                 }
             }
 
-            #RNA barcode
+            #RNA barcode replacement list
             if (defined(rna_replacement_list)){
                 File nonoptional_replacement_list = select_first([rna_replacement_list])
                 if ( (sub(nonoptional_replacement_list, "^gs:\/\/", "") == sub(nonoptional_replacement_list, "", "")) ){
@@ -168,9 +168,7 @@ workflow single_cell_pipeline {
     Array[File] read1_rna_ = select_first([ check_read1_rna.output_file, rna_read1 ])
     Array[File] read2_rna_ = select_first([ check_read2_rna.output_file, rna_read2 ])
     Array[File] fastq_barcode_rna_ = select_first([ check_fastq_barcode_rna.output_file, fastq_barcode_rna ])
-    
-    #File? rna_replacement_list_ = select_first([ check_rna_replacement_list.output_file, rna_replacement_list ])
-        
+            
     if ( create_onlist_mapping && process_atac && process_rna){
         call tenx_barcode_map.mapping_tenx_barcodes as barcode_mapping{
             input:
@@ -178,7 +176,6 @@ workflow single_cell_pipeline {
                 rna_barcode_inclusion_list = rna_barcode_inclusion_list
         }
     }
-    
     
     if ( process_rna ) {
         if ( rna_read1[0] != "" ) {
@@ -235,8 +232,5 @@ workflow single_cell_pipeline {
         File? atac_fragments_metrics = atac.atac_fragments_qc_metrics
         File? atac_fragments_alignment_stats = atac.atac_fragments_alignment_stats
         File? atac_fragments_barcode_summary = atac.atac_fragments_barcode_summary
-
-
     }
-
 }
