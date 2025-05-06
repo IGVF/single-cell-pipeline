@@ -36,10 +36,10 @@ task submit {
         File rna_qc_kb_parameters
         File rna_qc_inspect
 
-        String docker = "swekhande/sw-dockers:submit-outputs"
-        String lab_key = "buenrostro-bernstein:"
-        String lab = "/labs/jason-buenrostro/"
-        String award = "/awards/HG011986/"
+        String? docker = "swekhande/sw-dockers:submit-outputs"
+        String? lab_key = "buenrostro-bernstein:"
+        String? lab = "/labs/jason-buenrostro/"
+        String? award = "/awards/HG011986/"
     }
 
     command <<<
@@ -56,17 +56,17 @@ task submit {
         #Google auth
 
         python /usr/local/bin/submit_outputs.py  \
-        --atac_bam_summary_stats atac_bam_summary_stats \
-        --atac_fragment_alignment_stats atac_fragment_alignment_stats \
-        --atac_fragment_barcode_summary atac_fragment_barcode_summary \
-        --atac_fragment_metrics atac_fragment_metrics \
-        --rna_qc_kb_info rna_qc_kb_info \
-        --rna_qc_kb_parameters rna_qc_kb_parameters \
-        --rna_qc_inspect rna_qc_inspect \ 
-        --lab lab \ 
-        --lab_key lab_key \ 
-        --award award \
-        --analysis_set_acc analysis_accession
+        --atac_bam_summary_stats ~{atac_bam_summary_stats} \
+        --atac_fragment_alignment_stats ~{atac_fragment_alignment_stats} \
+        --atac_fragment_barcode_summary ~{atac_fragment_barcode_summary} \
+        --atac_fragment_metrics ~{atac_fragment_metrics} \
+        --rna_qc_kb_info ~{rna_qc_kb_info} \
+        --rna_qc_kb_parameters ~{rna_qc_kb_parameters} \
+        --rna_qc_inspect ~{rna_qc_inspect} \ 
+        --lab ~{lab} \ 
+        --lab_key ~{lab_key} \ 
+        --award ~{award} \
+        --analysis_set_acc ~{analysis_accession}
 
     >>>
 
