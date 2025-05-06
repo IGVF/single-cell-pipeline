@@ -62,9 +62,9 @@ task submit {
         --atac_fragment_metrics ~{atac_fragment_metrics} \
         --rna_qc_kb_info ~{rna_qc_kb_info} \
         --rna_qc_kb_parameters ~{rna_qc_kb_parameters} \
-        --rna_qc_inspect ~{rna_qc_inspect} \ 
-        --lab ~{lab} \ 
-        --lab_key ~{lab_key} \ 
+        --rna_qc_inspect ~{rna_qc_inspect} \
+        --lab ~{lab} \
+        --lab_key ~{lab_key} \
         --award ~{award} \
         --analysis_set_acc ~{analysis_accession}"
 
@@ -75,9 +75,9 @@ task submit {
         --atac_fragment_metrics ~{atac_fragment_metrics} \
         --rna_qc_kb_info ~{rna_qc_kb_info} \
         --rna_qc_kb_parameters ~{rna_qc_kb_parameters} \
-        --rna_qc_inspect ~{rna_qc_inspect} \ 
-        --lab "~{lab}" \ 
-        --lab_key "~{lab_key}" \ 
+        --rna_qc_inspect ~{rna_qc_inspect} \
+        --lab "~{lab}" \
+        --lab_key "~{lab_key}" \
         --award "~{award}" \
         --analysis_set_acc "~{analysis_accession}"
 
