@@ -72,8 +72,11 @@ def main():
     payload["award"] = args.award
     payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
     payload["atac_bam_summary_stats"] = {"path": args.atac_bam_summary_stats}
-    print(payload)
-    conn.post(payload)
+    payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_atac_seq_quality_metric_alignment_uniform-pipeline"]
+    _schema_property = conn.get_profile_from_payload(payload).properties
+    print(payload)    
+    stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
+
 
     #ATAC QC fragment
     payload = {}
@@ -111,8 +114,10 @@ def main():
         if key in atac_fragment_metrics_data:
             payload[value] = atac_fragment_metrics_data[key]
     
-    print(payload)
-    conn.post(payload)
+    payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_atac_seq_quality_metric_fragment_uniform-pipeline"]
+    _schema_property = conn.get_profile_from_payload(payload).properties
+    print(payload)    
+    stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
 
 
     #RNA QC
@@ -169,8 +174,10 @@ def main():
         if key in rna_qc_inspect_data:
             payload[value] = rna_qc_inspect_data[key]
 
-    print(payload)
-    conn.post(payload)
+    payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_rna_seq_quality_metric_gene_count_uniform-pipeline"]
+    _schema_property = conn.get_profile_from_payload(payload).properties
+    print(payload)    
+    stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
 
 if __name__ == "__main__":
     main()
