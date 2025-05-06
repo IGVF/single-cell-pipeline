@@ -53,6 +53,8 @@ task submit {
             done < "~{igvf_credentials}"
         fi
 
+        echo $IGVF_SECRET_KEY
+
         #Google auth
 
         echo "python /usr/local/bin/submit_outputs.py  \
