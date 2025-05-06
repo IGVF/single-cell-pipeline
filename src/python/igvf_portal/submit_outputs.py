@@ -1,6 +1,6 @@
 from igvf_utils.connection import Connection
 import sys
-import gcs_functions as gs
+#import gcs_functions as gs
 import argparse
 import json
 

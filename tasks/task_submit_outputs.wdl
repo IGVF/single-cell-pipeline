@@ -55,7 +55,7 @@ task submit {
 
         #Google auth
 
-        python submit_outputs.py \
+        python /usr/local/bin/submit_outputs.py  \
         --atac_bam_summary_stats atac_bam_summary_stats \
         --atac_fragment_alignment_stats atac_fragment_alignment_stats \
         --atac_fragment_barcode_summary atac_fragment_barcode_summary \
