@@ -73,7 +73,7 @@ def main():
     payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
     payload["atac_bam_summary_stats"] = {"path": args.atac_bam_summary_stats}
     print(payload)
-    #conn.post(payload)
+    conn.post(payload)
 
     #ATAC QC fragment
     payload = {}
@@ -112,7 +112,7 @@ def main():
             payload[value] = atac_fragment_metrics_data[key]
     
     print(payload)
-    #conn.post(payload)
+    conn.post(payload)
 
 
     #RNA QC
@@ -170,7 +170,7 @@ def main():
             payload[value] = rna_qc_inspect_data[key]
 
     print(payload)
-    #conn.post(payload)
+    conn.post(payload)
 
 if __name__ == "__main__":
     main()
