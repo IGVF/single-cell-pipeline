@@ -62,7 +62,7 @@ workflows:
 
    - name: "IGVF-portal_submit"
      subclass: WDL
-     primaryDescriptorPath: /workflows/subwf_submit_processed_to_portal.wdl
+     primaryDescriptorPath: /workflows/subwf_submit_outputs.wdl
      filters:  # Only develop or master branches and localAligner/** tags
          branches:
              - sw-portal-submission
