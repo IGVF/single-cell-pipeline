@@ -115,6 +115,7 @@ def main():
             payload[value] = atac_fragment_metrics_data[key]
     
     payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_atac_seq_quality_metric_fragment_uniform-pipeline"]
+    payload.pop("metadata_map", None)
     _schema_property = conn.get_profile_from_payload(payload).properties
     print(payload)    
     stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
@@ -175,6 +176,7 @@ def main():
             payload[value] = rna_qc_inspect_data[key]
 
     payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_rna_seq_quality_metric_gene_count_uniform-pipeline"]
+    payload.pop("metadata_map", None)
     _schema_property = conn.get_profile_from_payload(payload).properties
     print(payload)    
     stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
