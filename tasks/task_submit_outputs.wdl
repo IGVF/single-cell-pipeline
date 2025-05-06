@@ -76,10 +76,10 @@ task submit {
         --rna_qc_kb_info ~{rna_qc_kb_info} \
         --rna_qc_kb_parameters ~{rna_qc_kb_parameters} \
         --rna_qc_inspect ~{rna_qc_inspect} \ 
-        --lab ~{lab} \ 
-        --lab_key ~{lab_key} \ 
-        --award ~{award} \
-        --analysis_set_acc ~{analysis_accession}
+        --lab "~{lab}" \ 
+        --lab_key "~{lab_key}" \ 
+        --award "~{award}" \
+        --analysis_set_acc "~{analysis_accession}"
 
     >>>
 
