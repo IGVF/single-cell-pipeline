@@ -83,6 +83,10 @@ task submit {
 
     >>>
 
+    output {
+       Array[File] output_files = glob("IU_Logs/*")
+    }
+
     runtime {
         cpu : 1
         memory : "10 GB"

@@ -45,4 +45,8 @@ workflow submit_proccessed_files {
             rna_qc_kb_parameters = rna_qc_kb_parameters,
             rna_qc_inspect = rna_qc_inspect
     }
+
+    output{    
+        Array[File] seqspec_atac_onlist = submit.output_files
+    }
 }
