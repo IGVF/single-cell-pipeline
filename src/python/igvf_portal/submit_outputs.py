@@ -9,24 +9,24 @@ def main():
     parser = argparse.ArgumentParser(description="Submit single-cell pipeline outputs to IGVF.")
     
     # Adding arguments
-    #parser.add_argument("--atac_bam", required=False, action="store_true", help="Path to the ATAC BAM file.")
-    parser.add_argument("--atac_bam_index", required=False, action="store_true", help="Path to the ATAC BAM index file.")
-    #parser.add_argument("--atac_fragment", required=False, action="store_true", help="Path to the ATAC fragment file.")
-    #parser.add_argument("--atac_fragment_index", required=False, action="store_true", help="Path to the ATAC fragment index file.")
-    parser.add_argument("--atac_bam_summary_stats", required=False, action="store_true", help="Path to the ATAC QC metrics file.")
-    parser.add_argument("--atac_fragment_alignment_stats", required=False, action="store_true", help="Path to the ATAC QC metrics file.")
-    parser.add_argument("--atac_fragment_barcode_summary", required=False, action="store_true", help="Path to the ATAC QC metrics file.")
-    parser.add_argument("--atac_fragment_metrics", required=False, action="store_true", help="Path to the ATAC QC metrics file.")
-    #parser.add_argument("--atac_mm_list", required=False, action="store_true", help="List of ATAC metadata accessions.")
-    #parser.add_argument("--rna_h5ad", required=False, action="store_true", help="Path to the RNA H5AD file.")
-    #parser.add_argument("--rna_kb_tar", required=False, action="store_true", help="Path to the RNA KB tar file.")
-    parser.add_argument("--rna_qc_kb_info", required=False, action="store_true", help="Path to the RNA QC metrics file.")
-    parser.add_argument("--rna_qc_kb_parameters", required=False, action="store_true", help="Path to the RNA QC metrics file.")
-    parser.add_argument("--rna_qc_inspect", required=False, action="store_true", help="Path to the RNA QC metrics file.")
-    #parser.add_argument("--rna_mm_list", required=False, action="store_true", help="List of RNA metadata accessions.")
-    parser.add_argument("--lab", required=False, action="store_true", help="Lab name")
-    parser.add_argument("--lab_key", required=False, action="store_true", help="Lab alias key")
-    parser.add_argument("--award", required=False, action="store_true", help="Lab award")
+    #parser.add_argument("--atac_bam", required=False, help="Path to the ATAC BAM file.")
+    parser.add_argument("--atac_bam_index", required=False, help="Path to the ATAC BAM index file.")
+    #parser.add_argument("--atac_fragment", required=False, help="Path to the ATAC fragment file.")
+    #parser.add_argument("--atac_fragment_index", required=False, help="Path to the ATAC fragment index file.")
+    parser.add_argument("--atac_bam_summary_stats", required=False, help="Path to the ATAC QC metrics file.")
+    parser.add_argument("--atac_fragment_alignment_stats", required=False, help="Path to the ATAC QC metrics file.")
+    parser.add_argument("--atac_fragment_barcode_summary", required=False, help="Path to the ATAC QC metrics file.")
+    parser.add_argument("--atac_fragment_metrics", required=False, help="Path to the ATAC QC metrics file.")
+    #parser.add_argument("--atac_mm_list", required=False, help="List of ATAC metadata accessions.")
+    #parser.add_argument("--rna_h5ad", required=False, help="Path to the RNA H5AD file.")
+    #parser.add_argument("--rna_kb_tar", required=False, help="Path to the RNA KB tar file.")
+    parser.add_argument("--rna_qc_kb_info", required=False, help="Path to the RNA QC metrics file.")
+    parser.add_argument("--rna_qc_kb_parameters", required=False, help="Path to the RNA QC metrics file.")
+    parser.add_argument("--rna_qc_inspect", required=False, help="Path to the RNA QC metrics file.")
+    #parser.add_argument("--rna_mm_list", required=False, help="List of RNA metadata accessions.")
+    parser.add_argument("--lab", required=False, help="Lab name")
+    parser.add_argument("--lab_key", required=False, help="Lab alias key")
+    parser.add_argument("--award", required=False, help="Lab award")
     parser.add_argument("--analysis_set_acc", required=False)
     #parser.add_argument("--atac_r1_acc", required=False)
     #parser.add_argument("--atac_r2_acc", required=False)
@@ -155,10 +155,10 @@ def main():
             'medianUMIsPerBarcode': 'median_umis_per_barcode',
             'meanUMIsPerBarcode': 'mean_umis_per_barcode',
             'gtRecords': 'gt_records',
-            'numBarcodesOnOnlist': 'numBarcodesOnOnlist',
-            'percentageBarcodesOnOnlist': 'percentageBarcodesOnOnlist',
-            'numReadsOnOnlist': 'numReadsOnOnlist',
-            'percentageReadsOnOnlist': 'percentageReadsOnOnlist',
+            'numBarcodesOnOnlist': 'num_barcodes_on_onlist',
+            'percentageBarcodesOnOnlist': 'percentage_barcodes_on_onlist',
+            'numReadsOnOnlist': 'num_reads_on_onlist',
+            'percentageReadsOnOnlist': 'percentage_reads_on_onlist',
             'n_targets': 'n_targets',    # starting here is run_info.json
             'n_bootstraps': 'n_bootstraps',
             'n_processed': 'n_processed',
@@ -167,7 +167,7 @@ def main():
             'p_pseudoaligned': 'p_pseudoaligned',
             'p_unique': 'p_unique',
             'index_version': 'index_version',
-            'k-mer length': 'k-mer length'
+            'k-mer length': 'kmer_length'
         }
         
         # Read the JSON file specified in args.rna_qc_kb_info into memory
