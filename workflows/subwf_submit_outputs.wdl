@@ -14,7 +14,7 @@ workflow submit_proccessed_files {
         #Array[String] rna_mm_accession_list
 
         #String atac_bam
-        String atac_bam_index
+        String? atac_bam_index
         #String atac_fragment
         #String atac_fragment_index
 
@@ -23,14 +23,14 @@ workflow submit_proccessed_files {
 
         File igvf_credentials
 
-        File atac_bam_summary_stats
-        File atac_fragment_alignment_stats
-        File atac_fragment_barcode_summary
-        File atac_fragment_metrics
+        File? atac_bam_summary_stats
+        File? atac_fragment_alignment_stats
+        File? atac_fragment_barcode_summary
+        File? atac_fragment_metrics
         
-        File rna_qc_kb_info
-        File rna_qc_kb_parameters
-        File rna_qc_inspect
+        File? rna_qc_kb_info
+        File? rna_qc_kb_parameters
+        File? rna_qc_inspect
     }
 
     call task_submit.submit as submit{
