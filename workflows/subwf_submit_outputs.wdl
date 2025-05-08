@@ -14,7 +14,7 @@ workflow submit_proccessed_files {
         #Array[String] rna_mm_accession_list
 
         #String atac_bam
-        #String atac_bam_index
+        String atac_bam_index
         #String atac_fragment
         #String atac_fragment_index
 
@@ -43,7 +43,8 @@ workflow submit_proccessed_files {
             atac_fragment_metrics = atac_fragment_metrics,
             rna_qc_kb_info = rna_qc_kb_info,
             rna_qc_kb_parameters = rna_qc_kb_parameters,
-            rna_qc_inspect = rna_qc_inspect
+            rna_qc_inspect = rna_qc_inspect,
+            atac_bam_index = atac_bam_index
     }
 
     output{    
