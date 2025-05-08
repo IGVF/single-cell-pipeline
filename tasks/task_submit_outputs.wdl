@@ -53,18 +53,19 @@ task submit {
             done < "~{igvf_credentials}"
         fi
 
-        echo $IGVF_SECRET_KEY
+        #echo $IGVF_SECRET_KEY
 
         #Google auth
 
-        echo "python /usr/local/bin/submit_outputs.py  \
-        --atac_bam_summary_stats ~{atac_bam_summary_stats} \
-        --atac_fragment_alignment_stats ~{atac_fragment_alignment_stats} \
-        --atac_fragment_barcode_summary ~{atac_fragment_barcode_summary} \
-        --atac_fragment_metrics ~{atac_fragment_metrics} \
-        --rna_qc_kb_info ~{rna_qc_kb_info} \
-        --rna_qc_kb_parameters ~{rna_qc_kb_parameters} \
-        --rna_qc_inspect ~{rna_qc_inspect} \
+        echo "python3 /usr/local/bin/submit_outputs.py  \
+        ~{if defined(atac_bam_summary_stats) then "--atac_bam_summary_stats " + atac_bam_summary_stats else ""} \
+        ~{if defined(atac_fragment_alignment_stats) then "--atac_fragment_alignment_stats " + atac_fragment_alignment_stats else ""} \
+        ~{if defined(atac_fragment_barcode_summary) then "--atac_fragment_barcode_summary " + atac_fragment_barcode_summary else ""} \
+        ~{if defined(atac_fragment_metrics) then "--atac_fragment_metrics " + atac_fragment_metrics else ""} \
+        ~{if defined(rna_qc_kb_info) then "--rna_qc_kb_info " + rna_qc_kb_info else ""} \
+        ~{if defined(rna_qc_kb_parameters) then "--rna_qc_kb_parameters " + rna_qc_kb_parameters else ""} \
+        ~{if defined(rna_qc_inspect) then "--rna_qc_inspect " + rna_qc_inspect else ""} \
+        ~{if defined(atac_bam_index) then "--atac_bam_index " + atac_bam_index else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
         --award ~{award} \
@@ -79,10 +80,10 @@ task submit {
         ~{if defined(rna_qc_kb_parameters) then "--rna_qc_kb_parameters " + rna_qc_kb_parameters else ""} \
         ~{if defined(rna_qc_inspect) then "--rna_qc_inspect " + rna_qc_inspect else ""} \
         ~{if defined(atac_bam_index) then "--atac_bam_index " + atac_bam_index else ""} \
-        --lab "~{lab}" \
-        --lab_key "~{lab_key}" \
-        --award "~{award}" \
-        --analysis_set_acc "~{analysis_accession}"
+        --lab ~{lab} \
+        --lab_key ~{lab_key} \
+        --award ~{award} \
+        --analysis_set_acc ~{analysis_accession}
 
     >>>
 
