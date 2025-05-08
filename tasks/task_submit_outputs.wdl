@@ -14,10 +14,10 @@ task submit {
     input {
         String analysis_accession
         
-        #Array[String]? atac_mm_accession_list
+        Array[String]? atac_mm_accession_list
         #Array[String]? rna_mm_accession_list
 
-        #String? atac_bam
+        String? atac_bam
         String? atac_bam_index
         #String? atac_fragment
         #String? atac_fragment_index
@@ -26,6 +26,8 @@ task submit {
         #String? rna_kb_tar
 
         File igvf_credentials
+        String genome
+        String controlled_access
 
         File? atac_bam_summary_stats
         File? atac_fragment_alignment_stats
@@ -35,6 +37,13 @@ task submit {
         File? rna_qc_kb_info
         File? rna_qc_kb_parameters
         File? rna_qc_inspect
+
+        Array[String]? atac_seqspec_list
+        Array[String]? rna_seqspec_list
+        Array[String]? atac_r1_list
+        Array[String]? rna_r1_list
+        Array[String]? atac_r2_list
+        Array[String]? rna_r2_list
 
         String? docker = "swekhande/sw-dockers:submit-outputs"
         String? lab_key = "buenrostro-bernstein:"
@@ -53,22 +62,25 @@ task submit {
             done < "~{igvf_credentials}"
         fi
 
-        #echo $IGVF_SECRET_KEY
-
-        #Google auth
-
         echo "python3 /usr/local/bin/submit_outputs.py  \
-        ~{if defined(atac_bam_summary_stats) then "--atac_bam_summary_stats " + atac_bam_summary_stats else ""} \
-        ~{if defined(atac_fragment_alignment_stats) then "--atac_fragment_alignment_stats " + atac_fragment_alignment_stats else ""} \
-        ~{if defined(atac_fragment_barcode_summary) then "--atac_fragment_barcode_summary " + atac_fragment_barcode_summary else ""} \
-        ~{if defined(atac_fragment_metrics) then "--atac_fragment_metrics " + atac_fragment_metrics else ""} \
-        ~{if defined(rna_qc_kb_info) then "--rna_qc_kb_info " + rna_qc_kb_info else ""} \
-        ~{if defined(rna_qc_kb_parameters) then "--rna_qc_kb_parameters " + rna_qc_kb_parameters else ""} \
-        ~{if defined(rna_qc_inspect) then "--rna_qc_inspect " + rna_qc_inspect else ""} \
-        ~{if defined(atac_bam_index) then "--atac_bam_index " + atac_bam_index else ""} \
+        ~{if defined(atac_bam_summary_stats) then "--atac_bam_summary_stats ~{atac_bam_summary_stats}" else ""} \
+        ~{if defined(atac_fragment_alignment_stats) then "--atac_fragment_alignment_stats ~{atac_fragment_alignment_stats}" else ""} \
+        ~{if defined(atac_fragment_barcode_summary) then "--atac_fragment_barcode_summary ~{atac_fragment_barcode_summary}" else ""} \
+        ~{if defined(atac_fragment_metrics) then "--atac_fragment_metrics ~{atac_fragment_metrics}" else ""} \
+        ~{if defined(rna_qc_kb_info) then "--rna_qc_kb_info ~{rna_qc_kb_info}" else ""} \
+        ~{if defined(rna_qc_kb_parameters) then "--rna_qc_kb_parameters ~{rna_qc_kb_parameters}" else ""} \
+        ~{if defined(rna_qc_inspect) then "--rna_qc_inspect ~{rna_qc_inspect}" else ""} \
+        ~{if defined(atac_bam_index) then "--atac_bam_index ~{atac_bam_index}" else ""} \
+        ~{if defined(atac_bam) then "--atac_bam ~{atac_bam}" else ""} \
+        ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
+        ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
+        ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
+        ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
         --award ~{award} \
+        --genome ~{genome} \
+        --controlled_access ~{controlled_access} \
         --analysis_set_acc ~{analysis_accession}"
 
         python3 /usr/local/bin/submit_outputs.py  \
@@ -80,9 +92,16 @@ task submit {
         ~{if defined(rna_qc_kb_parameters) then "--rna_qc_kb_parameters ~{rna_qc_kb_parameters}" else ""} \
         ~{if defined(rna_qc_inspect) then "--rna_qc_inspect ~{rna_qc_inspect}" else ""} \
         ~{if defined(atac_bam_index) then "--atac_bam_index ~{atac_bam_index}" else ""} \
+        ~{if defined(atac_bam) then "--atac_bam ~{atac_bam}" else ""} \
+        ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
+        ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
+        ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
+        ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
         --award ~{award} \
+        --genome ~{genome} \
+        --controlled_access ~{controlled_access} \
         --analysis_set_acc ~{analysis_accession}
 
     >>>

@@ -1,7 +1,7 @@
 from igvf_utils.connection import Connection
 import gcs_functions as gs
 import sys
-#import gcs_functions as gs
+import re
 import argparse
 import json
 
@@ -17,23 +17,37 @@ def main():
     parser.add_argument("--atac_fragment_alignment_stats", required=False, help="Path to the ATAC QC metrics file.")
     parser.add_argument("--atac_fragment_barcode_summary", required=False, help="Path to the ATAC QC metrics file.")
     parser.add_argument("--atac_fragment_metrics", required=False, help="Path to the ATAC QC metrics file.")
-    #parser.add_argument("--atac_mm_list", required=False, help="List of ATAC metadata accessions.")
+    parser.add_argument("--atac_mm_list", required=False, help="List of ATAC metadata accessions (comma-separated).", type=lambda s: s.split(','))
     #parser.add_argument("--rna_h5ad", required=False, help="Path to the RNA H5AD file.")
     #parser.add_argument("--rna_kb_tar", required=False, help="Path to the RNA KB tar file.")
     parser.add_argument("--rna_qc_kb_info", required=False, help="Path to the RNA QC metrics file.")
     parser.add_argument("--rna_qc_kb_parameters", required=False, help="Path to the RNA QC metrics file.")
     parser.add_argument("--rna_qc_inspect", required=False, help="Path to the RNA QC metrics file.")
-    #parser.add_argument("--rna_mm_list", required=False, help="List of RNA metadata accessions.")
+    #parser.add_argument("--rna_mm_list", required=False, help="List of RNA metadata accessions.", type=lambda s: s.split(','))
     parser.add_argument("--lab", required=False, help="Lab name")
     parser.add_argument("--lab_key", required=False, help="Lab alias key")
     parser.add_argument("--award", required=False, help="Lab award")
     parser.add_argument("--analysis_set_acc", required=False)
-    #parser.add_argument("--atac_r1_acc", required=False)
-    #parser.add_argument("--atac_r2_acc", required=False)
-    #parser.add_argument("--atac_seqspec_acc", required=False)
-    #parser.add_argument("--rna_r1_acc", required=False)
-    #parser.add_argument("--rna_r2_acc", required=False)
-    #parser.add_argument("--rna_seqspec_acc", required=False)
+    parser.add_argument("--genome", required=False, help="Genome assembly")
+    parser.add_argument("--controlled_access", required=False, help="Controlled access flag")
+    parser.add_argument("--atac_r1_acc", required=False, help="List of ATAC R1 accessions.", type=lambda s: s.split(','))
+    parser.add_argument("--atac_r2_acc", required=False, help="List of ATAC R2 accessions.", type=lambda s: s.split(','))
+    #parser.add_argument("--rna_r1_acc", required=False, help="List of RNA R1 accessions.", type=lambda s: s.split(','))
+    #parser.add_argument("--rna_r2_acc", required=False, help="List of RNA R2 accessions.", type=lambda s: s.split(','))
+    
+    parser.add_argument(
+        "--atac_seqspec_acc",
+        required=False,
+        help="List of configuration file URLs (comma-separated). Extracts IGVF accessions.",
+        type=lambda s: [re.search(r'IGVFFI[0-9A-Z]+', part).group() for part in s.split(',')]
+    )
+
+    #parser.add_argument(
+     #   "--rna_seqspec_acc",
+     #   required=False,
+     #   help="List of configuration file URLs (comma-separated). Extracts IGVF accessions.",
+     #   type=lambda s: [re.search(r'IGVFFI[0-9A-Z]+', part).group() for part in s.split(',')]
+    #)
 
 
     # Parse the arguments
@@ -65,12 +79,54 @@ def main():
     # Add your logic here to process the inputs and interact with IGVF or GCS
     conn=Connection("prod")
 
+    atac_reference_files = {
+        "GRCm39": ["IGVFFI5593VLWB", "IGVFFI9282QLXO"],
+        "GRCh38": ["IGVFFI7969JLFC", "IGVFFI0653VCGH"],
+    }
+
+    rna_reference_files = {
+        "GRCm39": ["IGVFFI5078MNED"],
+        "GRCh38": ["IGVFFI9561BASO"],
+    }
+
+    if args.atac_bam_index:
+        print("ATAC BAM:", args.atac_bam)
+        payload = {}
+        payload["submitted_file_name"] = args.atac_bam
+        payload["md5sum"] = gs.get_md5sum(args.atac_bam_index.split("/")[2], "/".join(args.atac_bam_index.split("/")[3:]))
+        payload["aliases"] = [args.lab_key + args.analysis_set_acc + "_bam"]
+        payload["lab"] = args.lab 
+        payload["award"] = args.award
+        payload["file_format"] = "bam"
+        payload["file_set"] = args.analysis_set_acc
+        payload["content_type"] = "alignments"
+        payload["derived_from"] = args.atac_r1_acc + args.atac_r2_acc + args.atac_seqspec_acc
+        payload["controlled_access"] = args.controlled_access
+        payload["redacted"] = False
+        payload["filtered"] = False
+        payload["assembly"] = args.genome
+        payload["reference_files"] = atac_reference_files[args.genome]
+
+        _schema_property = conn.get_profile_from_payload(payload).properties
+        print(payload)    
+        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+
     if args.atac_bam_index:
         print("ATAC BAM Index:", args.atac_bam_index)
         payload = {}
         payload["submitted_file_name"] = args.atac_bam_index
         payload["md5sum"] = gs.get_md5sum(args.atac_bam_index.split("/")[2], "/".join(args.atac_bam_index.split("/")[3:]))
-        print(payload["md5sum"])
+        payload["aliases"] = [args.lab_key + args.analysis_set_acc + "_bam_index"]
+        payload["lab"] = args.lab 
+        payload["award"] = args.award
+        payload["file_format"] = "bai"
+        payload["file_set"] = args.analysis_set_acc
+        payload["content_type"] = "index"
+        payload["derived_from"] = [args.lab_key + args.analysis_set_acc + "_bam"]
+        payload["controlled_access"] = args.controlled_access
+        _schema_property = conn.get_profile_from_payload(payload).properties
+        print(payload)    
+        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #ATAC QC BAM
     if args.atac_bam_summary_stats:
