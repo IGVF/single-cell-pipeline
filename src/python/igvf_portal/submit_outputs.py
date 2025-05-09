@@ -32,8 +32,10 @@ def main():
     parser.add_argument("--controlled_access", required=False, help="Controlled access flag")
     parser.add_argument("--atac_r1_acc", required=False, help="List of ATAC R1 accessions.", type=lambda s: s.split(','))
     parser.add_argument("--atac_r2_acc", required=False, help="List of ATAC R2 accessions.", type=lambda s: s.split(','))
+    parser.add_argument("--atac_bc_acc", required=False, help="List of ATAC bc accessions.", type=lambda s: s.split(','))
     #parser.add_argument("--rna_r1_acc", required=False, help="List of RNA R1 accessions.", type=lambda s: s.split(','))
     #parser.add_argument("--rna_r2_acc", required=False, help="List of RNA R2 accessions.", type=lambda s: s.split(','))
+    #parser.add_argument("--rna_bc_acc", required=False, help="Find and add RNA bc accessions.")
     
     parser.add_argument(
         "--atac_seqspec_acc",
@@ -54,8 +56,7 @@ def main():
     args = parser.parse_args()
     
     # Example usage of parsed arguments
-    #print("ATAC BAM:", args.atac_bam)
-    #
+
     #print("ATAC Fragment:", args.atac_fragment)
     #print("ATAC Fragment Index:", args.atac_fragment_index)
     print("ATAC QC:", args.atac_bam_summary_stats)
@@ -69,9 +70,7 @@ def main():
     print("Lab key:", args.lab_key)
     print("Award:", args.award)
     print("Analysis Set Accession:", args.analysis_set_acc)
-    #print("ATAC r1 Accession:", args.atac_r1_acc)
-    #print("ATAC r2 Accession:", args.atac_r2_acc)
-    #print("ATAC seqspec Accession:", args.atac_seqspec_acc)
+
     #print("RNA r1 Accession:", args.rna_r1_acc)
     #print("RNA r2 Accession:", args.rna_r2_acc)
     #print("RNA seqspec Accession:", args.rna_seqspec_acc)
@@ -90,6 +89,10 @@ def main():
     }
 
     if args.atac_bam_index:
+        print("ATAC r1 Accession:", args.atac_r1_acc)
+        print("ATAC r2 Accession:", args.atac_r2_acc)
+        print("ATAC seqspec Accession:", args.atac_seqspec_acc)
+        print("ATAC MM Accession:", args.atac_mm_list)
         print("ATAC BAM:", args.atac_bam)
         payload = {}
         payload["submitted_file_name"] = args.atac_bam
@@ -100,7 +103,7 @@ def main():
         payload["file_format"] = "bam"
         payload["file_set"] = args.analysis_set_acc
         payload["content_type"] = "alignments"
-        payload["derived_from"] = args.atac_r1_acc + args.atac_r2_acc + args.atac_seqspec_acc
+        payload["derived_from"] = args.atac_r1_acc + args.atac_r2_acc + args.atac_bc_acc + args.atac_seqspec_acc
         payload["controlled_access"] = args.controlled_access
         payload["redacted"] = False
         payload["filtered"] = False

@@ -44,6 +44,8 @@ task submit {
         Array[String]? rna_r1_list
         Array[String]? atac_r2_list
         Array[String]? rna_r2_list
+        Array[String]? atac_bc_list
+        Array[String]? rna_bc_list
 
         String? docker = "swekhande/sw-dockers:submit-outputs"
         String? lab_key = "buenrostro-bernstein:"
@@ -75,6 +77,7 @@ task submit {
         ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
         ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
         ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
+        ~{if defined(atac_bc_list) then "--atac_bc_acc ~{atac_bc_list}" else ""} \
         ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
