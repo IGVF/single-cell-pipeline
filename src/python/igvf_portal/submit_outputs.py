@@ -22,17 +22,12 @@ def main():
     parser.add_argument("--rna_qc_kb_info", required=False, help="Path to the RNA QC metrics file.")
     parser.add_argument("--rna_qc_kb_parameters", required=False, help="Path to the RNA QC metrics file.")
     parser.add_argument("--rna_qc_inspect", required=False, help="Path to the RNA QC metrics file.")
-    parser.add_argument("--rna_mm_list", required=False, help="List of RNA metadata accessions.", type=lambda s: s.split(','))
     parser.add_argument("--lab", required=False, help="Lab name")
     parser.add_argument("--lab_key", required=False, help="Lab alias key")
     parser.add_argument("--award", required=False, help="Lab award")
     parser.add_argument("--analysis_set_acc", required=False)
     parser.add_argument("--genome", required=False, help="Genome assembly")
     parser.add_argument("--controlled_access", required=False, help="Controlled access flag")
-
-    parser.add_argument("--rna_r1_acc", required=False, help="List of RNA R1 accessions.", type=lambda s: s.split(','))
-    parser.add_argument("--rna_r2_acc", required=False, help="List of RNA R2 accessions.", type=lambda s: s.split(','))
-    parser.add_argument("--rna_bc_acc", required=False, help="Find and add RNA bc accessions.")
 
     parser.add_argument(
         "--atac_mm_list",
@@ -50,6 +45,20 @@ def main():
 
     parser.add_argument(
         "--atac_r2_acc",
+        required=False,
+        help="List of IGVF accessions.",
+        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
+    )
+
+    parser.add_argument(
+        "--atac_bc_acc",
+        required=False,
+        help="List of IGVF accessions.",
+        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
+    )
+
+    parser.add_argument(
+        "--rna_mm_list",
         required=False,
         help="List of IGVF accessions.",
         type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
@@ -75,13 +84,6 @@ def main():
         help="List of IGVF accessions.",
         type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
     )
-
-    parser.add_argument(
-        "--atac_bc_acc",
-        required=False,
-        help="List of IGVF accessions.",
-        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
-    )
     
     parser.add_argument(
         "--atac_seqspec_acc",
@@ -97,31 +99,13 @@ def main():
         type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
     )
 
-    # Parse the arguments
     args = parser.parse_args()
-    
-    # Example usage of parsed arguments
-
-    #print("ATAC Fragment:", args.atac_fragment)
-    #print("ATAC Fragment Index:", args.atac_fragment_index)
-    #print("ATAC QC:", args.atac_bam_summary_stats)
-    #print("ATAC Metadata List:", args.atac_mm_list)
-    #print("RNA H5AD:", args.rna_h5ad)
-    #print("RNA KB Tar:", args.rna_kb_tar)
-    #print("RNA QC:", args.rna_qc_kb_info)
-    #print("RNA QC:", args.rna_qc_inspect)
-    #print("RNA Metadata List:", args.rna_mm_list)
     
     print("Lab:", args.lab)
     print("Lab key:", args.lab_key)
     print("Award:", args.award)
     print("Analysis Set Accession:", args.analysis_set_acc)
 
-    #print("RNA r1 Accession:", args.rna_r1_acc)
-    #print("RNA r2 Accession:", args.rna_r2_acc)
-    #print("RNA seqspec Accession:", args.rna_seqspec_acc)
-    
-    # Add your logic here to process the inputs and interact with IGVF or GCS
     conn=Connection("prod")
 
     atac_reference_files = {
@@ -226,6 +210,9 @@ def main():
 
     #RNA H5AD
     if args.rna_h5ad:
+        args.rna_bc_acc = []
+        for i in args.rna_r1_acc:
+            args.rna_bc_acc.append(conn.get(conn.get(i)["aliases"][0].rsplit("_",1)[0] + "_barcode" )["accession"])
         print("RNA H5AD:", args.rna_h5ad)
         payload = {}
         payload["submitted_file_name"] = args.rna_h5ad
@@ -239,7 +226,7 @@ def main():
         payload["principal_dimension"] = "cell"
         payload["secondary_dimensions"] = ["gene"]
         payload["filtered"] = False
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
         payload["controlled_access"] = False
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-h5-specification"]
@@ -259,7 +246,7 @@ def main():
         payload["file_format"] = "tar"
         payload["file_set"] = args.analysis_set_acc
         payload["content_type"] = "comprehensive gene count matrix"
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
         payload["controlled_access"] = args.controlled_access
         payload["filtered"] = False
         payload["assembly"] = args.genome
