@@ -17,7 +17,6 @@ def main():
     parser.add_argument("--atac_fragment_alignment_stats", required=False, help="Path to the ATAC QC metrics file.")
     parser.add_argument("--atac_fragment_barcode_summary", required=False, help="Path to the ATAC QC metrics file.")
     parser.add_argument("--atac_fragment_metrics", required=False, help="Path to the ATAC QC metrics file.")
-    #parser.add_argument("--atac_mm_list", required=False, help="List of ATAC metadata accessions (comma-separated).", type=lambda s: s.split(','))
     parser.add_argument("--rna_h5ad", required=False, help="Path to the RNA H5AD file.")
     parser.add_argument("--rna_kb_tar", required=False, help="Path to the RNA KB tar file.")
     parser.add_argument("--rna_qc_kb_info", required=False, help="Path to the RNA QC metrics file.")
@@ -30,9 +29,7 @@ def main():
     parser.add_argument("--analysis_set_acc", required=False)
     parser.add_argument("--genome", required=False, help="Genome assembly")
     parser.add_argument("--controlled_access", required=False, help="Controlled access flag")
-    #parser.add_argument("--atac_r1_acc", required=False, help="List of ATAC R1 accessions.", type=lambda s: s.split(','))
-    #parser.add_argument("--atac_r2_acc", required=False, help="List of ATAC R2 accessions.", type=lambda s: s.split(','))
-    #parser.add_argument("--atac_bc_acc", required=False, help="List of ATAC bc accessions.", type=lambda s: s.split(','))
+
     parser.add_argument("--rna_r1_acc", required=False, help="List of RNA R1 accessions.", type=lambda s: s.split(','))
     parser.add_argument("--rna_r2_acc", required=False, help="List of RNA R2 accessions.", type=lambda s: s.split(','))
     parser.add_argument("--rna_bc_acc", required=False, help="Find and add RNA bc accessions.")
@@ -53,6 +50,27 @@ def main():
 
     parser.add_argument(
         "--atac_r2_acc",
+        required=False,
+        help="List of IGVF accessions.",
+        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
+    )
+
+    parser.add_argument(
+        "--rna_bc_acc",
+        required=False,
+        help="List of IGVF accessions.",
+        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
+    )
+
+    parser.add_argument(
+        "--rna_r1_acc",
+        required=False,
+        help="List of IGVF accessions.",
+        type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
+    )
+
+    parser.add_argument(
+        "--rna_r2_acc",
         required=False,
         help="List of IGVF accessions.",
         type=lambda s: [re.search(r'IGVF\w+', part.strip()).group() for part in s.strip('[]').strip('[]').split(',') if re.search(r'IGVF\w+', part.strip())]
@@ -221,7 +239,7 @@ def main():
         payload["principal_dimension"] = "cell"
         payload["secondary_dimensions"] = ["gene"]
         payload["filtered"] = False
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_bc_acc + args.rna_seqspec_acc
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
         payload["controlled_access"] = False
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-h5-specification"]
@@ -241,7 +259,7 @@ def main():
         payload["file_format"] = "tar"
         payload["file_set"] = args.analysis_set_acc
         payload["content_type"] = "comprehensive gene count matrix"
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_bc_acc + args.rna_seqspec_acc
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
         payload["controlled_access"] = args.controlled_access
         payload["filtered"] = False
         payload["assembly"] = args.genome
