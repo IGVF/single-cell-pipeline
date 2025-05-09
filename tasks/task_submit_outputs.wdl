@@ -74,16 +74,15 @@ task submit {
         ~{if defined(rna_qc_inspect) then "--rna_qc_inspect ~{rna_qc_inspect}" else ""} \
         ~{if defined(atac_bam_index) then "--atac_bam_index ~{atac_bam_index}" else ""} \
         ~{if defined(atac_bam) then "--atac_bam ~{atac_bam}" else ""} \
+        ~{if defined(atac_fragment) then "--atac_fragment ~{atac_fragment}" else ""} \
+        ~{if defined(atac_fragment_index) then "--atac_fragment_index ~{atac_fragment_index}" else ""} \
+        ~{if defined(rna_h5ad) then "--rna_h5ad ~{rna_h5ad}" else ""} \
+        ~{if defined(rna_kb_tar) then "--rna_kb_tar ~{rna_kb_tar}" else ""} \
         ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
         ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
         ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
         ~{if defined(atac_bc_list) then "--atac_bc_acc ~{atac_bc_list}" else ""} \
         ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
-        ~{if defined(rna_seqspec_list) then "--atac_seqspec_acc ~{rna_seqspec_list}" else ""} \
-        ~{if defined(rna_r1_list) then "--rna_r1_acc ~{rna_r1_list}" else ""} \
-        ~{if defined(rna_r2_list) then "--rna_r2_acc ~{rna_r2_list}" else ""} \
-        ~{if defined(rna_bc_list) then "--rna_bc_acc ~{rna_bc_list}" else ""} \
-        ~{if defined(rna_mm_accession_list) then "--rna_mm_list ~{rna_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
         --award ~{award} \
@@ -101,6 +100,10 @@ task submit {
         ~{if defined(rna_qc_inspect) then "--rna_qc_inspect ~{rna_qc_inspect}" else ""} \
         ~{if defined(atac_bam_index) then "--atac_bam_index ~{atac_bam_index}" else ""} \
         ~{if defined(atac_bam) then "--atac_bam ~{atac_bam}" else ""} \
+        ~{if defined(atac_fragment) then "--atac_fragment ~{atac_fragment}" else ""} \
+        ~{if defined(atac_fragment_index) then "--atac_fragment_index ~{atac_fragment_index}" else ""} \
+        ~{if defined(rna_h5ad) then "--rna_h5ad ~{rna_h5ad}" else ""} \
+        ~{if defined(rna_kb_tar) then "--rna_kb_tar ~{rna_kb_tar}" else ""} \
         ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
         ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
         ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
