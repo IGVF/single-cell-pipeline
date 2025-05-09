@@ -15,15 +15,15 @@ task submit {
         String analysis_accession
         
         Array[String]? atac_mm_accession_list
-        #Array[String]? rna_mm_accession_list
+        Array[String]? rna_mm_accession_list
 
         String? atac_bam
         String? atac_bam_index
-        #String? atac_fragment
-        #String? atac_fragment_index
+        String? atac_fragment
+        String? atac_fragment_index
 
-        #String? rna_h5ad
-        #String? rna_kb_tar
+        String? rna_h5ad
+        String? rna_kb_tar
 
         File igvf_credentials
         String genome
@@ -79,6 +79,11 @@ task submit {
         ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
         ~{if defined(atac_bc_list) then "--atac_bc_acc ~{atac_bc_list}" else ""} \
         ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
+        ~{if defined(rna_seqspec_list) then "--atac_seqspec_acc ~{rna_seqspec_list}" else ""} \
+        ~{if defined(rna_r1_list) then "--rna_r1_acc ~{rna_r1_list}" else ""} \
+        ~{if defined(rna_r2_list) then "--rna_r2_acc ~{rna_r2_list}" else ""} \
+        ~{if defined(rna_bc_list) then "--rna_bc_acc ~{rna_bc_list}" else ""} \
+        ~{if defined(rna_mm_accession_list) then "--rna_mm_list ~{rna_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
         --award ~{award} \
@@ -99,6 +104,7 @@ task submit {
         ~{if defined(atac_seqspec_list) then "--atac_seqspec_acc ~{atac_seqspec_list}" else ""} \
         ~{if defined(atac_r1_list) then "--atac_r1_acc ~{atac_r1_list}" else ""} \
         ~{if defined(atac_r2_list) then "--atac_r2_acc ~{atac_r2_list}" else ""} \
+        ~{if defined(atac_bc_list) then "--atac_bc_acc ~{atac_bc_list}" else ""} \
         ~{if defined(atac_mm_accession_list) then "--atac_mm_list ~{atac_mm_accession_list}" else ""} \
         --lab ~{lab} \
         --lab_key ~{lab_key} \
