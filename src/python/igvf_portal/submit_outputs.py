@@ -5,6 +5,9 @@ import re
 import argparse
 import json
 
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1", "True", "T", "TRUE")
+
 def main():
     parser = argparse.ArgumentParser(description="Submit single-cell pipeline outputs to IGVF.")
     
@@ -105,6 +108,8 @@ def main():
     print("Lab key:", args.lab_key)
     print("Award:", args.award)
     print("Analysis Set Accession:", args.analysis_set_acc)
+    
+    args.controlled_access = str2bool(args.controlled_access)
 
     conn=Connection("prod")
 
@@ -128,7 +133,7 @@ def main():
         print("ATAC BAM:", args.atac_bam)
         payload = {}
         payload["submitted_file_name"] = args.atac_bam
-        payload["md5sum"] = gs.get_md5sum(args.atac_bam_index.split("/")[2], "/".join(args.atac_bam_index.split("/")[3:]))
+        payload["md5sum"] = gs.get_md5sum(args.atac_bam.split("/")[2], "/".join(args.atac_bam.split("/")[3:]))
         payload["aliases"] = [args.lab_key + args.analysis_set_acc + "_bam"]
         payload["lab"] = args.lab 
         payload["award"] = args.award
@@ -143,8 +148,10 @@ def main():
         payload["reference_files"] = atac_reference_files[args.genome]
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "alignment_file"
+        _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #ATAC BAM Index
     if args.atac_bam_index:
@@ -162,15 +169,17 @@ def main():
         payload["controlled_access"] = args.controlled_access
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "index_file"
+        _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #ATAC Fragment
     if args.atac_fragment:
         print("ATAC Fragments:", args.atac_fragment)
         payload = {}
-        payload["submitted_file_name"] = args.atac_bam_index
-        payload["md5sum"] = gs.get_md5sum(args.atac_bam_index.split("/")[2], "/".join(args.atac_bam_index.split("/")[3:]))
+        payload["submitted_file_name"] = args.atac_fragment
+        payload["md5sum"] = gs.get_md5sum(args.atac_fragment.split("/")[2], "/".join(args.atac_fragment.split("/")[3:]))
         payload["aliases"] = [args.lab_key + args.analysis_set_acc + "_fragments"]
         payload["lab"] = args.lab 
         payload["award"] = args.award
@@ -182,12 +191,13 @@ def main():
         payload["controlled_access"] = False
         payload["filtered"] = False
         payload["assembly"] = args.genome
-        payload["reference_files"] = atac_reference_files[args.genome]
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-single-cell-pipeline-fragment-file-specification"]
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "tabular_file"
-        print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+        _schema_property = conn.get_profile_from_payload(payload).properties
+        print(payload)
+
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #ATAC Fragment Index
     if args.atac_fragment_index:
@@ -205,8 +215,10 @@ def main():
         payload["controlled_access"] = False
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "index_file"
-        print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+        _schema_property = conn.get_profile_from_payload(payload).properties
+        print(payload) 
+        
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #RNA H5AD
     if args.rna_h5ad:
@@ -227,12 +239,14 @@ def main():
         payload["secondary_dimensions"] = ["gene"]
         payload["filtered"] = False
         payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
-        payload["controlled_access"] = False
+        payload["reference_files"] = rna_reference_files[args.genome]
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-h5-specification"]
         payload[Connection.PROFILE_KEY] = "matrix_file"
+        _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #RNA KB Tar
     if args.rna_kb_tar:
@@ -247,17 +261,17 @@ def main():
         payload["file_set"] = args.analysis_set_acc
         payload["content_type"] = "comprehensive gene count matrix"
         payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
-        payload["controlled_access"] = args.controlled_access
         payload["filtered"] = False
-        payload["assembly"] = args.genome
         payload["reference_files"] = rna_reference_files[args.genome]
         payload["principal_dimension"] = "cell"
         payload["secondary_dimensions"] = ["gene"]
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-tar-specification", "igvf:igvf-sc-pipeline-rna-tar-mtx-per-file-specification"]
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload[Connection.PROFILE_KEY] = "matrix_file"
+        _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        #stdout = conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=True, truncate_long_strings_in_payload_log=True)
 
     #ATAC QC BAM
     if args.atac_bam_summary_stats:
@@ -272,7 +286,8 @@ def main():
         payload["aliases"] = [args.lab_key + args.analysis_set_acc +"_single_cell_atac_seq_quality_metric_alignment_uniform-pipeline"]
         _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
 
 
     #ATAC QC fragment
@@ -317,7 +332,8 @@ def main():
         payload.pop("metadata_map", None)
         _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
 
 
     #RNA QC
@@ -379,7 +395,8 @@ def main():
         payload.pop("metadata_map", None)
         _schema_property = conn.get_profile_from_payload(payload).properties
         print(payload)    
-        stdout = conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
+        
+        conn.post(payload, upload_file=False, truncate_long_strings_in_payload_log=True)
 
 if __name__ == "__main__":
     main()
