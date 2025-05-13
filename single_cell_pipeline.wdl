@@ -232,5 +232,9 @@ workflow single_cell_pipeline {
         File? atac_fragments_metrics = atac.atac_fragments_qc_metrics
         File? atac_fragments_alignment_stats = atac.atac_fragments_alignment_stats
         File? atac_fragments_barcode_summary = atac.atac_fragments_barcode_summary
+
+        String subwf_rna_version = rna.subwf_rna_version
+        String subwf_atac_version = atac.subwf_atac_version
+        String main_pipeline_version = "v1"
     }
 }

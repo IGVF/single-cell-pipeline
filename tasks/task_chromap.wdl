@@ -29,7 +29,7 @@ task chromap_generate_fragments {
         #TODO: With this setting it usually caps at 75%.
         Float? memory_factor = 0.15
         #TODO:We need to setup a docker registry.
-        String? docker_image = "docker.io/igvf/chromap:main"
+        String? docker_image = "docker.io/igvf/chromap:v1"
     }
 
     # Determine the size of the input

@@ -108,5 +108,7 @@ workflow wf_atac {
         File atac_chromap_bam = generate_bam.atac_bam
         File atac_chromap_bam_index = generate_bam.atac_bam_index
         File? atac_chromap_bam_summary = generate_bam.atac_bam_summary
+
+        String subwf_atac_version = "v1"
     }
 }
