@@ -4,6 +4,7 @@ import os
 import requests
 import sys
 
+# Script to download files from IGVF portal using credentials
 
 def download_file_via_https(href_url: str, output_dir: str = '.') -> None:
     """Download file via href url on the portal
