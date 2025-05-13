@@ -7,13 +7,13 @@ Welcome to the IGVF Single Cell Pipeline repository.
 - [Introduction](#introduction)
 - [Documentation](#documentation)
 - [Usage](#usage)
-- [Usage](#usage)
 - [Contributing](#contributing)
 - [License](#license)
 
 ## Introduction
 
-This pipeline has been designed by the IGVF single-cell focus group for automated pre-processing and quality control of single-cell sequencing data. It supports native execution on the Terra/AnVIL platform but can also be executed on both compute clusters with job submission engines as well as standalone machines, with built-in parallelization and distributed computing capabilities. 
+This pipeline has been designed by the IGVF single-cell focus group for automated pre-processing of single-cell sequencing data. 
+It is a WDL wrapper for the python scripts present in [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).It supports native execution on the Terra/AnVIL platform but can also be executed on both compute clusters with job submission engines as well as standalone machines, with built-in parallelization and distributed computing capabilities. 
 
 The pipeline can be run with raw FASTQ files and a seqspec file describing them as inputs. The pipeline can handle ATAC and RNA modalities. Taking a seqspec in input makes the pipeline virtually suitable to process every library independently from the assay, protocol, library preparation or sequencing strategy used.
 The RNA and ATAC are processed and QC independently. If the dataset is multi-modal, a final step of joint QC is performed. The main outputs of the pipeline are a fragment file for the ATAC and a count matrix for RNA along side QC metrics and a HTML report.
@@ -23,88 +23,77 @@ The RNA and ATAC are processed and QC independently. If the dataset is multi-mod
 
 ## Documentation
 
-For more detailed documentation, please refer to our [Google Doc](https://docs.google.com/document/d/1NgNYDduZsThKTyND8DI1DIMwiG9q-Rt462377_NZXis/edit).
+For more detailed documentation of the inputs and outputs of each task, please refer to our the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).
+
 
 ## Usage
 
 To run the pipeline on Terra/Anvil go to the [dockstore page](https://dockstore.org/workflows/github.com/IGVF/single-cell-pipeline/IGVF-single_cell_pipeline:main?tab=info) and select export to Terra/AnVIL
 
 
-To run the pipeline locally you can refer to these [instructions](docs/install-pipeline-locally.org).
+To run the pipeline locally we recommend using the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).
 
 ## Input Files
 
-The following input files are required to run the pipeline:
+Accepted input formats are: `local path`, `https` url, Google Storage (`gs`) url
 
-- **read1_atac** *(Type: Array[File])*: First read file for ATAC sequencing data. Accepted input formats are: `local path`, `https` url, Google Storage (`gs`) url, or a `Synapse ID`. If you are only processing RNA use `[]`
-- **read2_atac** *(Type: Array[File])*: Second read file for ATAC sequencing data. Accepted inputs formata are: `local path`, `https` url, Google Storage (`gs`) url, or a `Synapse ID`. If you are only processing RNA use `[]` 
-- **fastq_barcode** *(Type: Array[File])*: Barcode file for ATAC sequencing data. Accepted input formats are: `local path`, `https` url, Google Storage (`gs`) url, or a `Synapse ID`. If you are only processing RNA use `[]`
 
-- **read1_rna** *(Type: Array[File])*: First read file for RNA sequencing data. Accepted input formats are: `local path`, `https` url, Google Storage (`gs`) url, or a `Synapse ID`. If you are only processing ATAC use `[]`
-- **read2_rna** *(Type: Array[File])*: Second read file for RNA sequencing data. Accepted input formats are: `local path`, `https` url, Google Storage (`gs`) url, or a `Synapse ID`. If you are only processing ATAC use `[]`
-- **whitelist_atac** *(Type: Array[File])*: Whitelist file for ATAC barcodes. Accepted input formats are: `local path`, `https` url, or a Google Storage (`gs`) url. If you are only processing RNA use `[]`
-- **whitelist_rna** *(Type: Array[File])*: Whitelist file for RNA barcodes. Accepted input formats are: `local path`, `https` url, or a Google Storage (`gs`) url. If you are only processing ATAC use `[]`
-- **seqspecs** *(Type: Array[File])*: Seqspec file describing the sequencing data. Accepted input formats are: `local path`, `https` url, or a Google Storage (`gs`) url.
-- **Chemistry** *(Type: String)*: Chemistry used in the sequencing process.
-- **Prefix** *(Type: String)*: Prefix for output files.
-- **Genome_tsv** *(Type: File)*: TSV formatted file containing the links to chromap and  kb inputs and other reference annotations. For human and mouse you can use the following.
+### Common Inputs
 
-| Genome | URL |
-|--------|-----|
-| hg38   | `gs://broad-buenrostro-pipeline-genome-annotations/IGVF_human_v43/IGVF_human_v43_Homo_sapiens_genome_files_hg38_v43.tsv` |
-| mm39   | `gs://broad-buenrostro-pipeline-genome-annotations/IGVF_mouse_v32/IGVF_mouse_v32_Mus_musculus_genome_files_mm39_v32.tsv` |
-| mm39_cast(beta)   | `gs://broad-buenrostro-pipeline-genome-annotations/CAST_EiJ_v1/Mus_musculus_casteij_genome_files.tsv` |
+- **create_onlist_mapping** *(Type: Boolean)*: Whether to create an on-list mapping. This is useful for 10x multiomic assays. Default is `false`.
+- **prefix** *(Type: String)*: Prefix for the analysis set.
+- **igvf_credentials** *(Type: File?)*: Optional IGVF credentials file.
+- **subpool** *(Type: String?)*: Subpool to address. Default is `"none"`.
+- **genome_tsv** *(Type: File)*: TSV formatted file containing genome references and annotations.
+
+### ATAC-specific Inputs
+
+- **atac_read1** *(Type: Array[File])*: First read file(s) for ATAC sequencing data. If you are only processing RNA use `[]`
+- **atac_read2** *(Type: Array[File])*: Second read file(s) for ATAC sequencing data. If you are only processing RNA use `[]`
+- **fastq_barcode** *(Type: Array[File])*: Barcode file(s) for ATAC sequencing data. If you are only processing RNA use `[]`
+- **atac_barcode_inclusion_list** *(Type: File)*: Inclusion list for ATAC barcodes.
+- **chromap_genome_index_tar_gz** *(Type: File?)*: Optional Chromap genome index tarball.
+- **genome_fasta** *(Type: File?)*: Optional genome FASTA file.
+- **atac_read_format** *(Type: String)*: Format of the ATAC read files.
+
+### RNA-specific Inputs
+
+- **rna_read1** *(Type: Array[File])*: First read file(s) for RNA sequencing data. If you are only processing ATAC use `[]`
+- **rna_read2** *(Type: Array[File])*: Second read file(s) for RNA sequencing data. If you are only processing ATAC use `[]`
+- **fastq_barcode_rna** *(Type: Array[File])*: Barcode file(s) for RNA sequencing data. Default is `[]`.
+- **rna_barcode_inclusion_list** *(Type: File)*: Inclusion list for RNA barcodes.
+- **kb_mode** *(Type: String)*: Mode for RNA processing. Default is `"nac"`.
+- **rna_read_format** *(Type: String)*: Format of the RNA read files.
+- **kb_genome_index_tar_gz** *(Type: File?)*: Optional KB genome index tarball.
+- **rna_replacement_list** *(Type: File?)*: Optional replacement list for RNA. This is specific for kallisto-bustool.
+
 
 ## Output Files
 
 ### RNA
+
 | Name | Suffix | Description |
-|--------|-----|--------|
-| `rna_mtx_tar `| .mtx.tar.gz | [Raw] Tarball containing four separated count matrices in mtx format: Spliced, Unspliced, Ambiguous, and Total |
-| `rna_mtxs_h5ad` | .rna.align.kb.{genome}.count_matrix.h5ad | [Raw] h5ad containing four separated count matrices: Spliced, Unspliced, Ambiguous, and Total |
-| `rna_aggregated_counts_h5ad` | .cells_x_genes.total.h5ad | [Raw] Aggregated(Ambiguous+Spliced+Unspliced) count matrix in h5ad format |
-| `rna_barcode_metadata` | .qc.rna.{genome}.barcode.metadata.tsv | [Raw] Per barcode alignment statistics file |
-| `rna_log` | .rna.log.{genome}.txt | [Raw] Log file from kb |
-| `rna_kb_output` | .rna.align.kb.{genome}.tar.gz | [Raw] Tarball containing all the logs and bus files generated from kb |
+|------|--------|-------------|
+| `rna_kb_h5ad` | .rna_kb_h5ad | [Raw] h5ad file containing RNA count matrices |
+| `rna_kb_output_folder_tar_gz` | .rna_kb_output_folder.tar.gz | [Raw] Tarball containing all output files from the RNA processing |
+| `rna_kb_run_info_json` | .rna_kb_run_info.json | [Raw] JSON file with run information for RNA processing |
+| `rna_kb_library_qc_metrics_json` | .rna_kb_library_qc_metrics.json | [Raw] JSON file with library QC metrics for RNA |
+| `rna_kb_parameters_json` | .rna_kb_parameters.json | [Raw] JSON file with parameters used for RNA processing |
 
 ### ATAC
 
 | Name | Suffix | Description |
-|--------|-----|--------|
-| `atac_bam` | .atac.align.k4.{genome_name}.bam | [Raw] Aligned bam file from Chromap |
-| `atac_bam_log` | .atac.align.k4.{genome}.log.txt | [Raw] Log file from aligner |
-| `atac_fragments` | .tsv.gz | [Raw] Fragment file from Chromap |
-| `atac_fragments_index`  | .tsv.gz.tbi | [Raw] Fragment file index from Chromap |
-| `atac_chromap_barcode_metadata` | .chromap.barcode.metadata.tsv | [Raw] Per barcode alignment statistics file from Chromap |
-| `atac_snapatac2_barcode_metadata` | .snapatac2.barcode.metadata.tsv | [Filtered] Per barcode statistics file from SnapATAC2 |
+|------|--------|-------------|
+| `atac_bam` | .atac_chromap_bam | [Raw] Aligned BAM file from Chromap for ATAC |
+| `atac_bam_index` | .atac_chromap_bam_index | [Raw] BAM index file for ATAC |
+| `atac_bam_summary_stats` | .atac_chromap_bam_summary | [Raw] Summary statistics generated by Chromap for the aligned BAM file |
+| `atac_fragments` | .atac_fragments | [Raw] Fragment file generated from Chromap for ATAC |
+| `atac_fragments_index` | .atac_fragments_index | [Raw] Index file for the ATAC fragment file |
+| `atac_fragments_log` | .atac_fragments_alignment_stats | [Raw] Log file with alignment statistics from Chromap for ATAC fragments |
+| `atac_fragments_metrics` | .atac_fragments_qc_metrics | [Raw] QC metrics from chromap for ATAC fragments |
+| `atac_fragments_alignment_stats` | .atac_fragments_alignment_stats | [Raw] Alignment statistics from chromap for ATAC fragments |
+| `atac_fragments_barcode_summary` | .atac_fragments_barcode_summary | [Raw] Summary of barcode statistics from chromap for ATAC fragments |
 
-### Joint
-
-| Name | Suffix | Description |
-|--------|-----|--------|
-| `joint_barcode_metadata` | .joint.barcode.metadata.{genome}.csv | [Filtered] Joint per barcode statistics file |
-| `csv_summary` | .csv | [Filtered] CSV summary report |
-| `html_summary` | .html | [Filtered] HTML summary report |
-
-## QC metrics
-| Column Name     | Description                          |
-|-----------------|--------------------------------------|
-| barcode         | Unique identifier for the sample     |
-| total           | Total number of reads                |
-| duplicate       | Number of duplicate reads            |
-| unmapped        | Number of unmapped reads             |
-| lowmapq         | Number of low mapping quality reads  |
-| unique          | Number of unique reads               |
-| pct_dup         | Percentage of duplicate reads        |
-| pct_unmapped    | Percentage of unmapped reads         |
-| n_fragment      | Number of fragments                  |
-| frac_dup        | Fraction of duplicate reads          |
-| frac_mito       | Fraction of mitochondrial reads      |
-| tsse            | Transcription start site enrichment  |
-| promoter_frac   | Fraction of reads in promoter regions|
-| tss_frac        | Fraction of reads in TSS regions     |
-| total_counts    | Total counts                         |
-| genes           | Number of genes                      |
 
 ## Contributing
 
