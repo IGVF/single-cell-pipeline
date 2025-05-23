@@ -1,6 +1,9 @@
 # IGVF Single-cell pipeline
 
-Welcome to the IGVF Single Cell Pipeline repository. 
+Welcome to the IGVF Single Cell Pipeline repository.
+The latest version of the pipeline is the [v1.1](https://github.com/IGVF/single-cell-pipeline/tree/v1.1) and it is based on the
+[atomic-workflows v1.1](https://github.com/IGVF/atomic-workflows/tree/v1.1).
+The documentation for v1.1 can be found [here](https://docs.google.com/document/d/1NgNYDduZsThKTyND8DI1DIMwiG9q-Rt462377_NZXis/edit?tab=t.0#heading=h.9ecc41kilcvq).
 
 ## Table of Contents
 
@@ -13,7 +16,7 @@ Welcome to the IGVF Single Cell Pipeline repository.
 ## Introduction
 
 This pipeline has been designed by the IGVF single-cell focus group for automated pre-processing of single-cell sequencing data. 
-It is a WDL wrapper for the python scripts present in [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).It supports native execution on the Terra/AnVIL platform but can also be executed on both compute clusters with job submission engines as well as standalone machines, with built-in parallelization and distributed computing capabilities. 
+It is a WDL wrapper for the python scripts present in [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.1).It supports native execution on the Terra/AnVIL platform but can also be executed on both compute clusters with job submission engines as well as standalone machines, with built-in parallelization and distributed computing capabilities. 
 
 The pipeline can be run with raw FASTQ files and a seqspec file describing them as inputs. The pipeline can handle ATAC and RNA modalities. Taking a seqspec in input makes the pipeline virtually suitable to process every library independently from the assay, protocol, library preparation or sequencing strategy used.
 The RNA and ATAC are processed and QC independently. If the dataset is multi-modal, a final step of joint QC is performed. The main outputs of the pipeline are a fragment file for the ATAC and a count matrix for RNA along side QC metrics and a HTML report.
@@ -23,7 +26,7 @@ The RNA and ATAC are processed and QC independently. If the dataset is multi-mod
 
 ## Documentation
 
-For more detailed documentation of the inputs and outputs of each task, please refer to our the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).
+For more detailed documentation of the inputs and outputs of each task, please refer to our the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.1).
 
 
 ## Usage
@@ -31,7 +34,7 @@ For more detailed documentation of the inputs and outputs of each task, please r
 To run the pipeline on Terra/Anvil go to the [dockstore page](https://dockstore.org/workflows/github.com/IGVF/single-cell-pipeline/IGVF-single_cell_pipeline:main?tab=info) and select export to Terra/AnVIL
 
 
-To run the pipeline locally we recommend using the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.0).
+To run the pipeline locally we recommend using the IGVF [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.1).
 
 ## Input Files
 
