@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN pip install requests
 
 # Copy the download_with_credentials.py script into the image
-COPY /src/python/igvf_portal/download_with_credentials.py /usr/local/bin/download_with_credentials.py
+COPY download_with_credentials.py /usr/local/bin/download_with_credentials.py
 
 # Make the script executable
 RUN chmod +x /usr/local/bin/download_with_credentials.py

@@ -7,7 +7,7 @@ version 1.0
 task kb_count {
 
     meta {
-        version: 'v1'
+        version: 'v1.1'
         author: 'Eugenio Mattei at Broad Institute of MIT and Harvard'
         description: 'Align RNA using kallisto-bustool'
     }
@@ -36,7 +36,7 @@ task kb_count {
         Float memory_factor = 0.15
         
         #TODO:We need to setup a docker registry.
-        String docker_image = "docker.io/igvf/kallisto-bustools:main"
+        String docker_image = "docker.io/igvf/kallisto-bustools:v1.1"
         
     }
     

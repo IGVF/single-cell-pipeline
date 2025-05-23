@@ -6,7 +6,7 @@ version 1.0
 
 task check_inputs {
     meta {
-        version: 'v0.1'
+        version: 'v1'
         author: 'Siddarth Wekhande (swekhand@broadinstitute.org) at Broad Institute of MIT and Harvard'
         description: 'Broad Institute of MIT and Harvard IGVF pipeline: check inputs task'
     }
@@ -18,7 +18,7 @@ task check_inputs {
         Int? cpus = 1
         Float? disk_factor = 1.0
         Float? memory_factor = 1.0
-        String? docker_image = "polumechanos/check_inputs:main"    
+        String? docker_image = "docker.io/igvf/check-inputs:v1"    
     }
 
     Float mem_gb = 4.0

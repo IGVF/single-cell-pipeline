@@ -7,7 +7,7 @@ import "../tasks/task_seqspec_extract.wdl" as task_seqspec_extract
 
 workflow wf_check_inputs {
     meta {
-        version: 'v0.1'
+        version: 'v1'
         author: 'Siddarth Wekhande (swekhand@broadinstitute.org) at Broad Institute of MIT and Harvard'
         description: 'IGVF Single Cell pipeline: Sub-workflow to check inputs with seqspec'
     }
