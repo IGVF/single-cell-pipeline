@@ -5,7 +5,7 @@ import "../tasks/task_kb_count.wdl" as task_kb
 
 workflow wf_rna {
     meta {
-        version: 'v1'
+        version: 'v1.1'
         author: 'Siddarth Wekhande (swekhand@broadinstitute.org) at Broad Institute of MIT and Harvard'
         description: 'IGVF Single Cell pipeline: Sub-workflow to process RNA libraries'
     }
@@ -63,6 +63,6 @@ workflow wf_rna {
         File rna_kb_run_info_json = kb.rna_kb_run_info_json
         File rna_kb_library_qc_metrics_json = kb.rna_kb_library_qc_metrics_json
         File rna_kb_parameters_json = kb.rna_kb_parameters_json
-        String subwf_rna_version = "v1"
+        String subwf_rna_version = "v1.1"
     }
 }

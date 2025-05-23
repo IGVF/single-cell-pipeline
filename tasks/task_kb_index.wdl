@@ -7,7 +7,7 @@ version 1.0
 task kb_index {
 
     meta {
-        version: 'v1'
+        version: 'v1.1'
         author: 'Eugenio Mattei at Broad Institute of MIT and Harvard'
         description: 'Create genome index using kallisto-bustools'
     }
@@ -26,7 +26,7 @@ task kb_index {
         Float? memory_factor = 1
         
         #TODO:We need to setup a docker registry.
-        String? docker_image = "docker.io/igvf/kallisto-bustools:v1"
+        String? docker_image = "docker.io/igvf/kallisto-bustools:v1.1"
         
     }
     
