@@ -46,30 +46,7 @@ workflow single_cell_pipeline {
     Boolean process_atac = if length(atac_read1)>0 then true else false
     Boolean process_rna = if length(rna_read1)>0 then true else false
 
-    if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
-        call check_inputs.check_inputs as check_genome_fasta{
-            input:
-                path = genome_fasta_,
-                igvf_credentials = igvf_credentials
-        }
-    }
 
-    if (sub(idx_tar_atac_, "^gs:\/\/", "") == sub(idx_tar_atac_, "", "")){
-        call check_inputs.check_inputs as check_genome_index{
-            input:
-                path = idx_tar_atac_,
-                igvf_credentials = igvf_credentials
-        }
-    }
-
-    if (sub(idx_tar_rna_, "^gs:\/\/", "") == sub(idx_tar_rna_, "", "")){
-        call check_inputs.check_inputs as check_transcriptome_index{
-            input:
-                path = idx_tar_rna_,
-                igvf_credentials = igvf_credentials
-        }
-    }
-    
     if(process_atac){
         if ( atac_read1[0] != "" ) {
 
@@ -103,6 +80,22 @@ workflow single_cell_pipeline {
                             path = file,
                             igvf_credentials = igvf_credentials
                     }
+                }
+            }
+            
+            if (sub(genome_fasta_, "^gs:\/\/", "") == sub(genome_fasta_, "", "")){
+                call check_inputs.check_inputs as check_genome_fasta{
+                        input:
+                            path = genome_fasta_,
+                            igvf_credentials = igvf_credentials
+                    }
+            }
+
+            if (sub(idx_tar_atac_, "^gs:\/\/", "") == sub(idx_tar_atac_, "", "")){
+                call check_inputs.check_inputs as check_genome_index{
+                    input:
+                        path = idx_tar_atac_,
+                        igvf_credentials = igvf_credentials
                 }
             }
         }
@@ -159,6 +152,13 @@ workflow single_cell_pipeline {
                             path = nonoptional_replacement_list,
                             igvf_credentials = igvf_credentials
                     }
+                }
+            }
+            if (sub(idx_tar_rna_, "^gs:\/\/", "") == sub(idx_tar_rna_, "", "")){
+                call check_inputs.check_inputs as check_transcriptome_index{
+                    input:
+                        path = idx_tar_rna_,
+                        igvf_credentials = igvf_credentials
                 }
             }
         }
