@@ -19,7 +19,7 @@ This pipeline has been designed by the IGVF single-cell focus group for automate
 It is a WDL wrapper for the python scripts present in [atomic-workflows](https://github.com/IGVF/atomic-workflows/tree/v1.1).It supports native execution on the Terra/AnVIL platform but can also be executed on both compute clusters with job submission engines as well as standalone machines, with built-in parallelization and distributed computing capabilities. 
 
 The pipeline can be run with raw FASTQ files and a seqspec file describing them as inputs. The pipeline can handle ATAC and RNA modalities. Taking a seqspec in input makes the pipeline virtually suitable to process every library independently from the assay, protocol, library preparation or sequencing strategy used.
-The RNA and ATAC are processed and QC independently. If the dataset is multi-modal, a final step of joint QC is performed. The main outputs of the pipeline are a fragment file for the ATAC and a count matrix for RNA along side QC metrics and a HTML report.
+The ATAC and RNA are processed and QC independently. The main outputs of the pipeline are a fragment file for the ATAC and a count matrix for RNA.
 
 ![Pipeline Overview](docs/images/pipeline_flowchart.png)
 
