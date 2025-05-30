@@ -18,6 +18,7 @@ task log_atac {
         File? alignment_log
         File? barcode_log
         String? prefix = "sample"
+        String? docker_image = "docker.io/igvf/chromap:v1.1"
     }
 
     command <<<
@@ -35,7 +36,7 @@ task log_atac {
     }
 
     runtime {
-        docker: 'docker.io/igvf/chromap:v1'
+        docker: "${docker_image}"
     }
     parameter_meta {
         alignment_log: {
