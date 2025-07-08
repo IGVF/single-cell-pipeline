@@ -80,14 +80,14 @@ task kb_count {
 
         if [[ -n "~{replacement_list}" ]]; then
             if [[ "~{replacement_list}" == *.gz ]]; then
-                echo '------ Decompressing the RNA barcode inclusion list ------' 1>&2
+                echo '------ Decompressing the RNA replacement list ------' 1>&2
                 gunzip -c ~{replacement_list} > replacement_list.txt
             else
-                echo '------ No decompression needed for the RNA barcode inclusion list ------' 1>&2
+                echo '------ No decompression needed for the RNA replacement list ------' 1>&2
                 cat ~{replacement_list} > replacement_list.txt
             fi
         else
-            echo '------ No RNA barcode inclusion list provided ------' 1>&2
+            echo '------ No RNA replacement list provided ------' 1>&2
         fi
 
         run_kallisto quantify ~{kb_mode} \
