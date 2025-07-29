@@ -259,7 +259,7 @@ def main():
         payload["award"] = args.award
         payload["file_format"] = "tar"
         payload["file_set"] = args.analysis_set_acc
-        payload["content_type"] = "comprehensive gene count matrix"
+        payload["content_type"] = "kallisto single cell RNAseq output"
         payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
         payload["filtered"] = False
         payload["reference_files"] = rna_reference_files[args.genome]
