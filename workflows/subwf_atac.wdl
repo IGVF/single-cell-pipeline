@@ -83,8 +83,8 @@ workflow wf_atac {
             prefix = prefix,
             barcode_inclusion_list = barcode_inclusion_list,
             barcode_conversion_dict = barcode_conversion_dict,
-            disk_factor = align_disk_factor,
-            memory_factor = align_memory_factor,
+            disk_factor = align_bam_disk_factor,
+            memory_factor = align_bam_memory_factor,
             cpus = align_cpus,
             docker_image = align_docker_image,
             read_format = read_format
