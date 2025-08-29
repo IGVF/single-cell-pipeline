@@ -27,8 +27,8 @@ task submit {
         String? subpool
         Array[String]? atac_read1
         Array[String]? atac_read2
-        Array[String] rna_read1
-        Array[String] rna_read2
+        Array[String]? rna_read1
+        Array[String]? rna_read2
         Array[String]? fastq_barcode
         Array[String]? fastq_barcode_rna
         String? genome_tsv
