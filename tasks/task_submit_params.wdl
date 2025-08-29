@@ -135,6 +135,26 @@ task submit {
   "subpool": "~{subpool}"
 }
 EOF
+
+    cat > pipeline_parameters.json << EOF
+[
+    {
+        "aliases": [
+            "buenrostro-bernstein:" "~{analysis_accession}_pipeline_config"
+        ],
+        "lab": "jason-buenrostro",
+        "award": "HG011986",
+        "attachment": {
+            "path": "config.json"
+        },
+        "description": "Terra workflow configuration for the single-cell pipeline run",
+        "document_type": "pipeline parameters"
+    }
+]
+EOF
+
+    iu_register -p document -i pipeline_parameters.json -m prod
+
   >>>
 
   output {
