@@ -144,7 +144,7 @@ def main():
         payload["controlled_access"] = args.controlled_access
         payload["redacted"] = False
         payload["filtered"] = False
-        payload["assembly"] = args.genome
+        #payload["assembly"] = args.genome
         payload["reference_files"] = atac_reference_files[args.genome]
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "alignment_file"
