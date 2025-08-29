@@ -18,7 +18,7 @@ task submit {
         String? kb_strand = "forward"
         String? atac_barcode_inclusion_list
         String? atac_read_format = "bc:15:22,bc:53:60,bc:91:98,r1:0:-1,r2:0:-1"
-        String chemistry = "share-seq"
+        String chemistry = "shareseq"
         String? chromap_genome_index_tar_gz = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/d11fbeb3-94ff-4e6c-b1e3-91c2d7eee97d/generate_chromap_index/2cac0f34-dac0-4298-b195-d5af95a3a2f5/call-chromap/chromap_IGVFFI0653VCGH.tar.gz"
         String? create_onlist_mapping = "false"
         String? prefix
@@ -31,7 +31,8 @@ task submit {
         Array[String]? rna_read2
         Array[String]? fastq_barcode
         Array[String]? fastq_barcode_rna
-        String? genome_tsv
+        String? genome_tsv = "gs://broad-buenrostro-pipeline-genome-annotations/IGVF_human_v43/IGVF_human_v43_Homo_sapiens_genome_files_hg38_v43.tsv"
+        String? genome_fasta = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/56c3edb0-832a-4ca5-98c4-06ab82bd930a/generate_chromap_index/6c2a2005-bf1c-45d6-851f-170920e8cfde/call-genome_check/cacheCopy/glob-aae8b15f635ae9fc31e845b03c8537e4/IGVFFI0653VCGH.fasta.gz"
         String? kb_genome_index_tar_gz = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/7378e57c-d2c2-47ac-980d-b301ba9077a1/wf_rna/ff6039ff-1e1a-4471-938b-9c309770a16f/call-kb/kb_IGVFFI0653VCGH_IGVFFI7217ZMJZv2.tar.gz"
         String? docker = "swekhande/sw-dockers:submit-outputs"
     }
@@ -50,20 +51,21 @@ task submit {
     cat > config.json <<EOF
 {
   "atac_barcode_inclusion_list": "~{atac_barcode_inclusion_list}",
-  "atac_read1": [~{sep=',' atac_read1}],
-  "atac_read2": [~{sep=',' atac_read2}],
+  "atac_read1": ~{sep=',' atac_read1},
+  "atac_read2": ~{sep=',' atac_read2},
   "atac_read_format": "~{atac_read_format}",
   "chromap_genome_index_tar_gz": "~{chromap_genome_index_tar_gz}",
   "create_onlist_mapping": ~{create_onlist_mapping},
-  "fastq_barcode": [~{sep=',' fastq_barcode}],
-  "fastq_barcode_rna": [~{sep=',' fastq_barcode_rna}],
+  "fastq_barcode": ~{sep=',' fastq_barcode},
+  "fastq_barcode_rna": ~{sep=',' fastq_barcode_rna},
   "genome_tsv": "~{genome_tsv}",
+  "genome_fasta": "~{genome_fasta}",
   "kb_genome_index_tar_gz": "~{kb_genome_index_tar_gz}",
   "kb_mode": "nac",
   "prefix": "~{prefix}",
   "rna_barcode_inclusion_list": "~{rna_barcode_inclusion_list}",
-  "rna_read1": [~{sep=',' rna_read1}],
-  "rna_read2": [~{sep=',' rna_read2}],
+  "rna_read1": ~{sep=',' rna_read1},
+  "rna_read2": ~{sep=',' rna_read2},
   "rna_read_format": "~{rna_read_format}",
   "rna_replacement_list": null,
   "single_cell_pipeline.atac.align_bam_cpus": null,
