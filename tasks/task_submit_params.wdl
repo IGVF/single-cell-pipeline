@@ -25,12 +25,12 @@ task submit {
         String? rna_barcode_inclusion_list
         String? rna_read_format = "0,15,23,0,53,61,0,91,99:2,0,10:1,0,0"
         String? subpool
-        Array[String]? atac_read1
-        Array[String]? atac_read2
-        Array[String]? rna_read1
-        Array[String]? rna_read2
-        Array[String]? fastq_barcode
-        Array[String]? fastq_barcode_rna
+        Array[String]? atac_read1 = "[]"
+        Array[String]? atac_read2 = "[]"
+        Array[String]? rna_read1 = "[]"
+        Array[String]? rna_read2 = "[]"
+        Array[String]? fastq_barcode = "[]"
+        Array[String]? fastq_barcode_rna = "[]"
         String? genome_tsv = "gs://broad-buenrostro-pipeline-genome-annotations/IGVF_human_v43/IGVF_human_v43_Homo_sapiens_genome_files_hg38_v43.tsv"
         String? genome_fasta = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/56c3edb0-832a-4ca5-98c4-06ab82bd930a/generate_chromap_index/6c2a2005-bf1c-45d6-851f-170920e8cfde/call-genome_check/cacheCopy/glob-aae8b15f635ae9fc31e845b03c8537e4/IGVFFI0653VCGH.fasta.gz"
         String? kb_genome_index_tar_gz = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/7378e57c-d2c2-47ac-980d-b301ba9077a1/wf_rna/ff6039ff-1e1a-4471-938b-9c309770a16f/call-kb/kb_IGVFFI0653VCGH_IGVFFI7217ZMJZv2.tar.gz"
