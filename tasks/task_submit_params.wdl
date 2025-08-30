@@ -136,10 +136,10 @@ task submit {
 }
 EOF
 
-# Replace all single quotes with double quotes in config.json
-sed -i 's/'\''/"/g' config.json
+     Replace all single quotes with double quotes in config.json
+    sed -i 's/'\''/"/g' config.json
 
-cat config.json
+    at config.json
 
     cat > pipeline_parameters.json << EOF
 [
@@ -158,9 +158,16 @@ cat config.json
 ]
 EOF
 
-cat pipeline_parameters.json
+    cat pipeline_parameters.json
 
     iu_register -p document -i pipeline_parameters.json -m prod
+
+    printf "record_id\tpipeline_parameters\n" > patch.tsv
+    printf "~{analysis_accession}\t[\"buenrostro-bernstein:~{analysis_accession}_pipeline_config\"]\n" >> patch.tsv
+
+    cat patch.tsv
+
+    iu_register -p analysis_set -i pipeline_parameters.json -m prod --patch
 
   >>>
 
