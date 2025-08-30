@@ -167,7 +167,7 @@ EOF
 
     cat patch.tsv
 
-    iu_register -p analysis_set -i pipeline_parameters.json -m prod --patch
+    iu_register -p analysis_set -i patch.tsv -m prod --patch
 
   >>>
 
