@@ -136,6 +136,9 @@ task submit {
 }
 EOF
 
+# Replace all single quotes with double quotes in config.json
+sed -i 's/'\''/"/g' config.json
+
     cat > pipeline_parameters.json << EOF
 [
     {
