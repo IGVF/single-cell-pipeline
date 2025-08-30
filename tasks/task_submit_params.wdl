@@ -57,15 +57,15 @@ task submit {
   "chromap_genome_index_tar_gz": "~{chromap_genome_index_tar_gz}",
   "create_onlist_mapping": ~{create_onlist_mapping},
   "fastq_barcode": ~{sep=',' fastq_barcode},
-  "fastq_barcode_rna": ~{sep=',' fastq_barcode_rna},
+  "fastq_barcode_rna": ~{if defined(fastq_barcode_rna) then fastq_barcode_rna else "[]"},
   "genome_tsv": "~{genome_tsv}",
   "genome_fasta": "~{genome_fasta}",
   "kb_genome_index_tar_gz": "~{kb_genome_index_tar_gz}",
   "kb_mode": "nac",
   "prefix": "~{prefix}",
   "rna_barcode_inclusion_list": "~{rna_barcode_inclusion_list}",
-  "rna_read1": ~{sep=',' rna_read1},
-  "rna_read2": ~{sep=',' rna_read2},
+  "rna_read1": ~{if defined(rna_read1) then rna_read1 else "[]"},
+  "rna_read2": ~{if defined(rna_read2) then rna_read2 else "[]"},
   "rna_read_format": "~{rna_read_format}",
   "rna_replacement_list": null,
   "single_cell_pipeline.atac.align_bam_cpus": null,
@@ -145,7 +145,7 @@ cat config.json
 [
     {
         "aliases": [
-            "buenrostro-bernstein:" "~{analysis_accession}_pipeline_config"
+            "buenrostro-bernstein:~{analysis_accession}_pipeline_config"
         ],
         "lab": "jason-buenrostro",
         "award": "HG011986",
