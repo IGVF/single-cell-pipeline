@@ -139,6 +139,8 @@ EOF
 # Replace all single quotes with double quotes in config.json
 sed -i 's/'\''/"/g' config.json
 
+cat config.json
+
     cat > pipeline_parameters.json << EOF
 [
     {
@@ -155,6 +157,8 @@ sed -i 's/'\''/"/g' config.json
     }
 ]
 EOF
+
+cat pipeline_parameters.json
 
     iu_register -p document -i pipeline_parameters.json -m prod
 
