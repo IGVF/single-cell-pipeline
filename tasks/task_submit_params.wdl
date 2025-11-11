@@ -35,6 +35,8 @@ task submit {
         String? genome_fasta = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/56c3edb0-832a-4ca5-98c4-06ab82bd930a/generate_chromap_index/6c2a2005-bf1c-45d6-851f-170920e8cfde/call-genome_check/cacheCopy/glob-aae8b15f635ae9fc31e845b03c8537e4/IGVFFI0653VCGH.fasta.gz"
         String? kb_genome_index_tar_gz = "gs://fc-secure-de19fd29-2253-41cd-9751-1788cf7ad1a5/submissions/intermediates/7378e57c-d2c2-47ac-980d-b301ba9077a1/wf_rna/ff6039ff-1e1a-4471-938b-9c309770a16f/call-kb/kb_IGVFFI0653VCGH_IGVFFI7217ZMJZv2.tar.gz"
         String? docker = "swekhande/sw-dockers:submit-outputs"
+
+        Boolean dry_run = true
     }
 
      command <<<
@@ -167,7 +169,12 @@ EOF
 
     cat patch.tsv
 
-    iu_register -p analysis_set -i patch.tsv -m prod --patch
+    if [ "${dry_run}" = false ]; then
+        echo "Not a dry run. Proceeding with patch."
+        iu_register -p analysis_set -i patch.tsv -m prod --patch
+    else
+        echo "Dry run enabled. Skipping patch."
+    fi
 
   >>>
 
