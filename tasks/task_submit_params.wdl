@@ -169,7 +169,7 @@ EOF
 
     cat patch.tsv
 
-    if [ "${dry_run}" = false ]; then
+    if [ "~{dry_run}" = false ]; then
         echo "Not a dry run. Proceeding with patch."
         iu_register -p analysis_set -i patch.tsv -m prod --patch
     else
