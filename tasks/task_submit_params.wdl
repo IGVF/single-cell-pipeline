@@ -160,18 +160,17 @@ EOF
 ]
 EOF
 
-
-    if [ "~{dry_run}" = false ]; then
         cat pipeline_parameters.json
 
         iu_register -p document -i pipeline_parameters.json -m prod
 
+        echo "Posted document."
+
+    if [ "~{dry_run}" = false ]; then
+        echo "Not a dry run. Proceeding with patch."
         printf "record_id\tpipeline_parameters\n" > patch.tsv
         printf "~{analysis_accession}\t[\"buenrostro-bernstein:~{analysis_accession}_pipeline_config\"]\n" >> patch.tsv
-
         cat patch.tsv
-        
-        echo "Not a dry run. Proceeding with patch."
         iu_register -p analysis_set -i patch.tsv -m prod --patch
     else
         echo "Dry run enabled. Skipping patch."
