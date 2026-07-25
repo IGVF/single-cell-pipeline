@@ -190,7 +190,8 @@ def main():
         payload["derived_from"] = args.atac_r1_acc + args.atac_r2_acc + args.atac_bc_acc + args.atac_seqspec_acc
         payload["controlled_access"] = False
         payload["filtered"] = False
-        payload["assembly"] = args.genome
+        #payload["assembly"] = args.genome
+        payload["reference_files"] = atac_reference_files[args.genome]
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-single-cell-pipeline-fragment-file-specification"]
         payload["analysis_step_version"] = "/analysis-step-versions/39c0498d-91f6-42de-8896-2fab1403f032/"
         payload[Connection.PROFILE_KEY] = "tabular_file"
@@ -223,8 +224,8 @@ def main():
     #RNA H5AD
     if args.rna_h5ad:
         args.rna_bc_acc = []
-        for i in args.rna_r1_acc:
-            args.rna_bc_acc.append(conn.get(conn.get(i)["aliases"][0].rsplit("_",1)[0] + "_barcode" )["accession"])
+        #for i in args.rna_r1_acc:
+            #args.rna_bc_acc.append(conn.get(conn.get(i)["aliases"][0].rsplit("_",1)[0] + "_barcode" )["accession"])
         print("RNA H5AD:", args.rna_h5ad)
         payload = {}
         payload["submitted_file_name"] = args.rna_h5ad
@@ -234,11 +235,11 @@ def main():
         payload["award"] = args.award
         payload["file_format"] = "h5ad"
         payload["file_set"] = args.analysis_set_acc
-        payload["content_type"] = "sparse gene count matrix"
-        payload["principal_dimension"] = "cell"
-        payload["secondary_dimensions"] = ["gene"]
+        payload["content_type"] = "cell by gene matrix"
+        #payload["principal_dimension"] = "cell"
+        #payload["secondary_dimensions"] = ["gene"]
         payload["filtered"] = False
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
         payload["reference_files"] = rna_reference_files[args.genome]
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-h5-specification"]
@@ -259,12 +260,12 @@ def main():
         payload["award"] = args.award
         payload["file_format"] = "tar"
         payload["file_set"] = args.analysis_set_acc
-        payload["content_type"] = "kallisto single cell RNAseq output"
-        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc + args.rna_bc_acc 
+        payload["content_type"] = "kallisto cell by gene matrix"
+        payload["derived_from"] = args.rna_r1_acc + args.rna_r2_acc + args.rna_seqspec_acc #+ args.rna_bc_acc 
         payload["filtered"] = False
         payload["reference_files"] = rna_reference_files[args.genome]
-        payload["principal_dimension"] = "cell"
-        payload["secondary_dimensions"] = ["gene"]
+        #payload["principal_dimension"] = "cell"
+        #payload["secondary_dimensions"] = ["gene"]
         payload["file_format_specifications"] = ["buenrostro-bernstein:igvf-sc-pipeline-matrix-tar-specification", "igvf:igvf-sc-pipeline-rna-tar-mtx-per-file-specification"]
         payload["analysis_step_version"] = "/analysis-step-versions/9c457b9f-fc6d-4cf1-b249-218827e9b449/"
         payload[Connection.PROFILE_KEY] = "matrix_file"
